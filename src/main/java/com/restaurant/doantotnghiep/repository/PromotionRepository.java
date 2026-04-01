@@ -12,21 +12,21 @@ public interface PromotionRepository extends JpaRepository<Promotion, Long> {
 
     @Query("""
                 SELECT DISTINCT p FROM Promotion p
-                LEFT JOIN FETCH p.products
+                LEFT JOIN FETCH p.foods
                 LEFT JOIN FETCH p.branches
             """)
-    List<Promotion> findAllWithProducts();
+    List<Promotion> findAllWithFoods();
 
     @Query("""
                 SELECT p FROM Promotion p
-                LEFT JOIN FETCH p.products
+                LEFT JOIN FETCH p.foods
                 LEFT JOIN FETCH p.branches
                 WHERE p.id = :id
             """)
-    Optional<Promotion> findByIdWithProducts(@Param("id") Long id);
+    Optional<Promotion> findByIdWithFoods(@Param("id") Long id);
 
     @Query("SELECT DISTINCT p FROM Promotion p " +
-            "LEFT JOIN FETCH p.products " +
+            "LEFT JOIN FETCH p.foods " +
             "LEFT JOIN FETCH p.branches")
     List<Promotion> findAllWithRelations();
 

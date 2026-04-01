@@ -35,7 +35,7 @@ public class PromotionServiceImpl implements PromotionService {
     @Override
     @Transactional(readOnly = true)
     public List<PromotionDTO> getAllPromotions() {
-        return promotionRepository.findAllWithProducts()
+        return promotionRepository.findAllWithFoods()
                 .stream()
                 .map(this::mapToDTO)
                 .toList();
@@ -45,7 +45,7 @@ public class PromotionServiceImpl implements PromotionService {
     @Override
     @Transactional(readOnly = true)
     public Optional<PromotionDTO> getPromotionById(Long id) {
-        return promotionRepository.findByIdWithProducts(id)
+        return promotionRepository.findByIdWithFoods(id)
                 .map(this::mapToDTO);
     }
 
@@ -87,7 +87,7 @@ public class PromotionServiceImpl implements PromotionService {
         Promotion saved = promotionRepository.saveAndFlush(promotion);
 
         // Fetch lại để có đầy đủ data
-        Promotion fetched = promotionRepository.findByIdWithProducts(saved.getId())
+        Promotion fetched = promotionRepository.findByIdWithFoods(saved.getId())
                 .orElseThrow(() -> new RuntimeException("Failed to fetch saved promotion"));
 
         return mapToDTO(fetched);
@@ -97,7 +97,7 @@ public class PromotionServiceImpl implements PromotionService {
     @Override
     @Transactional
     public PromotionDTO updatePromotion(Long id, PromotionDTO promotionDTO) {
-        return promotionRepository.findByIdWithProducts(id)
+        return promotionRepository.findByIdWithFoods(id)
                 .map(existing -> {
                     existing.setName(promotionDTO.getName());
                     existing.setDescription(promotionDTO.getDescription());

@@ -1,6 +1,7 @@
 package com.restaurant.doantotnghiep.service.impl;
 
 import com.restaurant.doantotnghiep.entity.Ingredient;
+import com.restaurant.doantotnghiep.dto.RecipeRequest;
 import com.restaurant.doantotnghiep.entity.Food;
 import com.restaurant.doantotnghiep.entity.Recipe;
 import com.restaurant.doantotnghiep.repository.IngredientRepository;
@@ -9,6 +10,7 @@ import com.restaurant.doantotnghiep.repository.RecipeRepository;
 import com.restaurant.doantotnghiep.service.RecipeService;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -27,34 +29,63 @@ public class RecipeServiceImpl implements RecipeService {
     }
 
     @Override
-    public Recipe create(Long foodId, Long ingredientId, Double quantityRequired) {
+    public List<Recipe> createMany(RecipeRequest request) {
 
-        // Check trùng công thức
-        recipeRepository.findByFoodIdAndIngredientId(foodId, ingredientId)
-                .ifPresent(r -> {
-                    throw new RuntimeException("Recipe already exists for this food and ingredient");
-                });
+        Food food = foodRepository.findById(request.getFoodId())
+                .orElseThrow(() -> new RuntimeException("Food not found"));
+
+        List<Recipe> recipes = new ArrayList<>();
+
+        for (RecipeRequest.IngredientItem item : request.getIngredients()) {
+
+            // check trùng công thức
+            recipeRepository.findByFoodIdAndIngredientId(
+                    request.getFoodId(),
+                    item.getIngredientId()).ifPresent(r -> {
+                        throw new RuntimeException("Ingredient already exists in recipe");
+                    });
+
+            Ingredient ingredient = ingredientRepository.findById(item.getIngredientId())
+                    .orElseThrow(() -> new RuntimeException("Ingredient not found"));
+
+            Recipe recipe = Recipe.builder()
+                    .food(food)
+                    .ingredient(ingredient)
+                    .quantityRequired(item.getQuantityRequired())
+                    .build();
+
+            recipes.add(recipe);
+        }
+
+        return recipeRepository.saveAll(recipes);
+    }
+
+    @Override
+    public List<Recipe> updateMany(Long foodId, List<RecipeRequest.IngredientItem> items) {
+
+        List<Recipe> oldRecipes = recipeRepository.findByFoodId(foodId);
+        recipeRepository.deleteAll(oldRecipes);
 
         Food food = foodRepository.findById(foodId)
                 .orElseThrow(() -> new RuntimeException("Food not found"));
 
-        Ingredient ingredient = ingredientRepository.findById(ingredientId)
-                .orElseThrow(() -> new RuntimeException("Ingredient not found"));
+        List<Recipe> newRecipes = new ArrayList<>();
 
-        Recipe recipe = Recipe.builder()
-                .food(food)
-                .ingredient(ingredient)
-                .quantityRequired(quantityRequired)
-                .build();
+        for (RecipeRequest.IngredientItem item : items) {
 
-        return recipeRepository.save(recipe);
-    }
+            Ingredient ingredient = ingredientRepository.findById(item.getIngredientId())
+                    .orElseThrow(() -> new RuntimeException("Ingredient not found"));
 
-    @Override
-    public Recipe update(Long id, Double quantityRequired) {
-        Recipe recipe = getById(id);
-        recipe.setQuantityRequired(quantityRequired);
-        return recipeRepository.save(recipe);
+            Recipe recipe = Recipe.builder()
+                    .food(food)
+                    .ingredient(ingredient)
+                    .quantityRequired(item.getQuantityRequired())
+                    .build();
+
+            newRecipes.add(recipe);
+        }
+
+        return recipeRepository.saveAll(newRecipes);
     }
 
     @Override

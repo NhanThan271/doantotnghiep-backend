@@ -1,5 +1,6 @@
 package com.restaurant.doantotnghiep.controller;
 
+import com.restaurant.doantotnghiep.dto.RecipeRequest;
 import com.restaurant.doantotnghiep.entity.Recipe;
 import com.restaurant.doantotnghiep.service.RecipeService;
 
@@ -20,17 +21,16 @@ public class RecipeController {
 
     @PostMapping
     @PreAuthorize("hasAnyRole('ADMIN')")
-    public Recipe create(@RequestParam Long foodId,
-            @RequestParam Long ingredientId,
-            @RequestParam Double quantityRequired) {
-        return recipeService.create(foodId, ingredientId, quantityRequired);
+    public List<Recipe> createMany(@RequestBody RecipeRequest request) {
+        return recipeService.createMany(request);
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN')")
-    public Recipe update(@PathVariable Long id,
-            @RequestParam Double quantityRequired) {
-        return recipeService.update(id, quantityRequired);
+    public List<Recipe> updateMany(
+            @PathVariable Long foodId,
+            @RequestBody List<RecipeRequest.IngredientItem> items) {
+        return recipeService.updateMany(foodId, items);
     }
 
     @DeleteMapping("/{id}")
