@@ -1,14 +1,15 @@
 package com.restaurant.doantotnghiep.service;
 
+import com.restaurant.doantotnghiep.dto.RecipeRequest;
 import com.restaurant.doantotnghiep.entity.Recipe;
 
 import java.util.List;
 
 public interface RecipeService {
 
-    Recipe create(Long foodId, Long ingredientId, Double quantityRequired);
+    List<Recipe> createMany(RecipeRequest request);
 
-    Recipe update(Long id, Double quantityRequired);
+    List<Recipe> updateMany(Long foodId, List<RecipeRequest.IngredientItem> items);
 
     void delete(Long id);
 
