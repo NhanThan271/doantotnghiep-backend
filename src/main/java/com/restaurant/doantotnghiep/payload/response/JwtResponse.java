@@ -11,6 +11,7 @@ public class JwtResponse {
     private String token;
     private Long branchId; // Thêm field này
     private String branchName;
+    private String position;
 
     public JwtResponse(String accessToken, Long id, String username, String email, List<String> roles) {
         this.id = id;
@@ -22,7 +23,7 @@ public class JwtResponse {
 
     // Constructor mới với branch
     public JwtResponse(String token, Long id, String username, String email, List<String> roles, Long branchId,
-            String branchName) {
+            String branchName, String position) {
         this.token = token;
         this.id = id;
         this.username = username;
@@ -30,6 +31,7 @@ public class JwtResponse {
         this.roles = roles;
         this.branchId = branchId;
         this.branchName = branchName;
+        this.position = position;
     }
 
     public String getTokenType() {
@@ -90,5 +92,13 @@ public class JwtResponse {
 
     public void setBranchName(String branchName) {
         this.branchName = branchName;
+    }
+
+    public String getPosition() {
+        return position;
+    }
+
+    public void setPosition(String position) {
+        this.position = position;
     }
 }

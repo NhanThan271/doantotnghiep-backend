@@ -17,10 +17,16 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.restaurant.doantotnghiep.dto.LoginDto;
 import com.restaurant.doantotnghiep.dto.RegisterDto;
+import com.restaurant.doantotnghiep.entity.Branch;
+import com.restaurant.doantotnghiep.entity.Staff;
 import com.restaurant.doantotnghiep.entity.User;
 import com.restaurant.doantotnghiep.entity.enums.Role;
+import com.restaurant.doantotnghiep.entity.enums.StaffPosition;
+import com.restaurant.doantotnghiep.entity.enums.StaffStatus;
 import com.restaurant.doantotnghiep.payload.response.JwtResponse;
 import com.restaurant.doantotnghiep.payload.response.MessageResponse;
+import com.restaurant.doantotnghiep.repository.BranchRepository;
+import com.restaurant.doantotnghiep.repository.StaffRepository;
 import com.restaurant.doantotnghiep.repository.UserRepository;
 import com.restaurant.doantotnghiep.security.jwt.JwtUtils;
 import com.restaurant.doantotnghiep.security.services.UserDetailsImpl;
@@ -30,16 +36,22 @@ import com.restaurant.doantotnghiep.security.services.UserDetailsImpl;
 public class AuthController {
 
         private final UserRepository userRepository;
+        private final StaffRepository staffRepository;
+        private final BranchRepository branchRepository;
         private final PasswordEncoder passwordEncoder;
         private final AuthenticationManager authenticationManager;
         private final JwtUtils jwtUtils;
 
         @Autowired
         public AuthController(UserRepository userRepository,
+                        StaffRepository staffRepository,
+                        BranchRepository branchRepository,
                         PasswordEncoder passwordEncoder,
                         AuthenticationManager authenticationManager,
                         JwtUtils jwtUtils) {
                 this.userRepository = userRepository;
+                this.staffRepository = staffRepository;
+                this.branchRepository = branchRepository;
                 this.passwordEncoder = passwordEncoder;
                 this.authenticationManager = authenticationManager;
                 this.jwtUtils = jwtUtils;
@@ -47,22 +59,59 @@ public class AuthController {
 
         @PostMapping("register")
         public ResponseEntity<?> register(@RequestBody RegisterDto registerDto) {
+
                 if (userRepository.existsByUsername(registerDto.getUsername())) {
-                        return ResponseEntity
-                                        .badRequest()
+                        return ResponseEntity.badRequest()
                                         .body(new MessageResponse("Username is taken!"));
                 }
 
+                Role roleEnum;
+                try {
+                        roleEnum = Role.valueOf(registerDto.getRole().toUpperCase());
+                } catch (Exception e) {
+                        return ResponseEntity.badRequest()
+                                        .body(new MessageResponse("Invalid role"));
+                }
+
+                // tạo user
                 User user = new User();
                 user.setUsername(registerDto.getUsername());
                 user.setPassword(passwordEncoder.encode(registerDto.getPassword()));
                 user.setEmail(registerDto.getEmail());
-
-                // set role từ string trong RegisterDto (ví dụ: "ADMIN" hoặc "USER")
-                Role roleEnum = Role.valueOf(registerDto.getRole().toUpperCase());
                 user.setRole(roleEnum);
 
+                Branch branch = null;
+
+                // chỉ xử lý branch nếu KHÔNG phải ADMIN
+                if (roleEnum != Role.ADMIN) {
+                        if (registerDto.getBranchId() == null) {
+                                return ResponseEntity.badRequest()
+                                                .body(new MessageResponse("Branch is required"));
+                        }
+
+                        branch = branchRepository.findById(registerDto.getBranchId())
+                                        .orElseThrow(() -> new RuntimeException("Branch not found"));
+
+                        user.setBranch(branch);
+                }
+
                 userRepository.save(user);
+
+                // chỉ tạo staff nếu KHÔNG phải ADMIN
+                if (roleEnum != Role.ADMIN) {
+                        Staff staff = new Staff();
+                        staff.setUser(user);
+                        staff.setBranch(branch);
+
+                        if (registerDto.getPosition() != null) {
+                                staff.setPosition(
+                                                StaffPosition.valueOf(registerDto.getPosition().toUpperCase()));
+                        }
+
+                        staff.setStatus(StaffStatus.ACTIVE);
+
+                        staffRepository.save(staff);
+                }
 
                 return ResponseEntity.ok(new MessageResponse("User registered successfully!"));
         }
@@ -84,7 +133,7 @@ public class AuthController {
 
                 User user = userRepository.findById(userDetails.getId())
                                 .orElseThrow(() -> new RuntimeException("User not found"));
-
+                Staff staff = staffRepository.findByUserId(user.getId()).orElse(null);
                 return ResponseEntity.ok(new JwtResponse(
                                 jwt,
                                 userDetails.getId(),
@@ -92,7 +141,8 @@ public class AuthController {
                                 userDetails.getEmail(),
                                 roles,
                                 user.getBranch() != null ? user.getBranch().getId() : null,
-                                user.getBranch() != null ? user.getBranch().getName() : null));
+                                user.getBranch() != null ? user.getBranch().getName() : null,
+                                staff != null ? staff.getPosition().name() : null));
         }
 
         @GetMapping("/me")
