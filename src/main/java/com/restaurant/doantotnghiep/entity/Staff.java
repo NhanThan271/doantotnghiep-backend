@@ -1,5 +1,6 @@
 package com.restaurant.doantotnghiep.entity;
 
+import com.restaurant.doantotnghiep.entity.enums.StaffPosition;
 import com.restaurant.doantotnghiep.entity.enums.StaffStatus;
 
 import jakarta.persistence.*;
@@ -25,6 +26,9 @@ public class Staff {
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "branch_id")
     private Branch branch;
+
+    @Enumerated(EnumType.STRING)
+    private StaffPosition position;
 
     @Enumerated(EnumType.STRING)
     private StaffStatus status;

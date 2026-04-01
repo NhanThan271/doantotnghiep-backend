@@ -2,9 +2,11 @@ package com.restaurant.doantotnghiep.dto;
 
 public class RegisterDto {
     private String username;
+    private Long branchId;
     private String email;
     private String password;
     private String role;
+    private String position;
 
     // getters & setters
     public String getUsername() {
@@ -13,6 +15,14 @@ public class RegisterDto {
 
     public void setUsername(String username) {
         this.username = username;
+    }
+
+    public Long getBranchId() {
+        return branchId;
+    }
+
+    public void setBranchId(Long branchId) {
+        this.branchId = branchId;
     }
 
     public void setEmail(String email) {
@@ -37,5 +47,13 @@ public class RegisterDto {
 
     public void setRole(String role) {
         this.role = role;
+    }
+
+    public String getPosition() {
+        return position;
+    }
+
+    public void setPosition(String position) {
+        this.position = position;
     }
 }
