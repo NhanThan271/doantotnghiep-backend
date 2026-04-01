@@ -20,20 +20,20 @@ public class IngredientController {
     }
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     public Ingredient create(@RequestBody Ingredient ingredient) {
         return ingredientService.create(ingredient);
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     public Ingredient update(@PathVariable Long id,
             @RequestBody Ingredient ingredient) {
         return ingredientService.update(id, ingredient);
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     public void delete(@PathVariable Long id) {
         ingredientService.delete(id);
     }
