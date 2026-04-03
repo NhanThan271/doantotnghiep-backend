@@ -4,10 +4,11 @@ import com.restaurant.doantotnghiep.entity.Reservation;
 import com.restaurant.doantotnghiep.entity.enums.ReservationStatus;
 
 import java.util.List;
+import java.util.Map;
 
 public interface ReservationService {
 
-    Reservation createReservation(Reservation reservation);
+    Reservation createFullReservation(Map<String, Object> request);
 
     List<Reservation> getPendingReservations();
 

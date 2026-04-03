@@ -20,24 +20,30 @@ public class Reservation {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(optional = false, fetch = FetchType.LAZY)
+    @ManyToOne(optional = true, fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User user;
+
+    private String customerName;
+
+    private String customerPhone;
+
+    private String customerEmail;
 
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "branch_id")
     private Branch branch;
 
-    @ManyToOne(optional = false, fetch = FetchType.LAZY)
+    @ManyToOne(optional = true, fetch = FetchType.LAZY)
     @JoinColumn(name = "table_id")
     private TableEntity table;
 
-    @ManyToOne(optional = false, fetch = FetchType.LAZY)
+    @ManyToOne(optional = true, fetch = FetchType.LAZY)
     @JoinColumn(name = "room_id")
     private Room room;
 
     @Column(nullable = false)
-    private String reservationTime;
+    private LocalDateTime reservationTime;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
