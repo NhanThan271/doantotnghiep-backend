@@ -82,8 +82,9 @@ public class AuthController {
 
                 Branch branch = null;
 
-                // chỉ xử lý branch nếu KHÔNG phải ADMIN
-                if (roleEnum != Role.ADMIN) {
+                // chỉ áp dụng cho MANAGER / EMPLOYEE
+                if (roleEnum == Role.MANAGER || roleEnum == Role.EMPLOYEE) {
+
                         if (registerDto.getBranchId() == null) {
                                 return ResponseEntity.badRequest()
                                                 .body(new MessageResponse("Branch is required"));
@@ -97,13 +98,19 @@ public class AuthController {
 
                 userRepository.save(user);
 
-                // chỉ tạo staff nếu KHÔNG phải ADMIN
-                if (roleEnum != Role.ADMIN) {
+                // tạo staff nếu là nhân viên
+                if (roleEnum == Role.MANAGER || roleEnum == Role.EMPLOYEE) {
+
                         Staff staff = new Staff();
                         staff.setUser(user);
                         staff.setBranch(branch);
 
-                        if (registerDto.getPosition() != null) {
+                        if (roleEnum == Role.EMPLOYEE) {
+                                if (registerDto.getPosition() == null) {
+                                        return ResponseEntity.badRequest()
+                                                        .body(new MessageResponse("Position is required for employee"));
+                                }
+
                                 staff.setPosition(
                                                 StaffPosition.valueOf(registerDto.getPosition().toUpperCase()));
                         }
@@ -142,7 +149,9 @@ public class AuthController {
                                 roles,
                                 user.getBranch() != null ? user.getBranch().getId() : null,
                                 user.getBranch() != null ? user.getBranch().getName() : null,
-                                staff != null ? staff.getPosition().name() : null));
+                                staff != null && staff.getPosition() != null
+                                                ? staff.getPosition().name()
+                                                : null));
         }
 
         @GetMapping("/me")
