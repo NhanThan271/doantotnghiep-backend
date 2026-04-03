@@ -9,6 +9,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/reservations")
@@ -18,9 +19,9 @@ public class ReservationController {
 
     private final ReservationService reservationService;
 
-    @PostMapping
-    public Reservation createReservation(@RequestBody Reservation reservation) {
-        return reservationService.createReservation(reservation);
+    @PostMapping("/full")
+    public Reservation createFull(@RequestBody Map<String, Object> request) {
+        return reservationService.createFullReservation(request);
     }
 
     @GetMapping("/pending")
