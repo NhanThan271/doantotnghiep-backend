@@ -25,7 +25,6 @@ public class TableController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN','MANAGER' , 'EMPLOYEE', 'CUSTOMER')")
     public TableEntity getTableById(@PathVariable Long id) {
         return tableService.getTableById(id);
     }

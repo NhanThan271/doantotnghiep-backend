@@ -10,28 +10,23 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/employee/categories")
+@RequestMapping("/api/categories")
 @CrossOrigin(origins = "http://localhost:3000")
 public class CategoryController {
 
     @Autowired
     private CategoryService categoryService;
 
-    // Xem tất cả danh mục (Admin, Nhân viên, Quản lý)
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
     public List<Category> getAllCategories() {
         return categoryService.getAllCategories();
     }
 
-    // Xem danh mục theo ID (Admin, Nhân viên, Quản lý)
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
     public Category getCategoryById(@PathVariable Long id) {
         return categoryService.getCategoryById(id);
     }
 
-    // Tạo danh mục (chỉ Admin)
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
     public Category createCategory(
@@ -42,7 +37,6 @@ public class CategoryController {
         return categoryService.createCategory(name, description, image);
     }
 
-    // Cập nhật danh mục (chỉ Admin)
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public Category updateCategory(
@@ -54,7 +48,6 @@ public class CategoryController {
         return categoryService.updateCategory(id, name, description, image);
     }
 
-    // Xóa danh mục (chỉ Admin)
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public void deleteCategory(@PathVariable Long id) {
