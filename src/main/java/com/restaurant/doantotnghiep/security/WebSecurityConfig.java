@@ -85,6 +85,11 @@ public class WebSecurityConfig {
                                 "/api/auth/**",
                                 "/api/test/**",
                                 "/uploads/**",
+                                "/api/foods/**",
+                                "/api/branches/**",
+                                "/api/reservations/**",
+                                "/api/tables/**",
+                                "/api/categories/**",
                                 // === Cho MoMo ===
                                 "/api/momo/**",
                                 "/api/payos/**",

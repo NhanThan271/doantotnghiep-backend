@@ -22,13 +22,11 @@ public class FoodController {
     private FoodService foodService;
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE', 'CUSTOMER')")
     public List<Food> getAllFoods() {
         return foodService.getAllFoods();
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE', 'CUSTOMER')")
     public EntityModel<Food> getFoodById(@PathVariable Long id) {
 
         Food food = foodService.getFoodById(id);
@@ -39,7 +37,6 @@ public class FoodController {
     }
 
     @GetMapping("/search")
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE', 'CUSTOMER')")
     public List<Food> searchFoods(@RequestParam("keyword") String keyword) {
         return foodService.searchFoods(keyword);
     }
@@ -68,7 +65,6 @@ public class FoodController {
     }
 
     @GetMapping("/category/{categoryId}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE', 'CUSTOMER')")
     public List<Food> getFoodsByCategory(@PathVariable Long categoryId) {
         return foodService.getFoodsByCategory(categoryId);
     }
