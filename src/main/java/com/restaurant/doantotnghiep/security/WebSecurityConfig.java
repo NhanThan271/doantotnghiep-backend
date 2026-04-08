@@ -91,6 +91,7 @@ public class WebSecurityConfig {
                                 "/webhook/**")
                         .permitAll()
                         .requestMatchers("/api/customer/orders").permitAll()
+                        .requestMatchers("/api/tables/branch/**").permitAll()
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
 
