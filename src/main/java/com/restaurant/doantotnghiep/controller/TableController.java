@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/customer/tables")
+@RequestMapping("/api/tables")
 @CrossOrigin(origins = "http://localhost:3000")
 public class TableController {
 
