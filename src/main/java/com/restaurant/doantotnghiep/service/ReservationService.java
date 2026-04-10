@@ -1,5 +1,6 @@
 package com.restaurant.doantotnghiep.service;
 
+import com.restaurant.doantotnghiep.dto.ReservationResponse;
 import com.restaurant.doantotnghiep.entity.Reservation;
 import com.restaurant.doantotnghiep.entity.enums.ReservationStatus;
 
@@ -10,7 +11,7 @@ public interface ReservationService {
 
     Reservation createFullReservation(Map<String, Object> request);
 
-    List<Reservation> getPendingReservations();
+    List<ReservationResponse> getPendingReservations();
 
     Reservation updateStatus(Long reservationId, ReservationStatus status);
 }

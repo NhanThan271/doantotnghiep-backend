@@ -5,6 +5,8 @@ import lombok.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+import com.restaurant.doantotnghiep.entity.enums.PaymentType;
+
 @Getter
 @Setter
 @Data
@@ -30,10 +32,13 @@ public class Payment {
     private LocalDateTime paymentDate;
 
     @OneToOne
-    @JoinColumn(name = "order_id", nullable = false)
+    @JoinColumn(name = "order_id")
     private Order order;
 
     @OneToOne
-    @JoinColumn(name = "reservation_id", nullable = false)
+    @JoinColumn(name = "reservation_id")
     private Reservation reservation;
+
+    @Enumerated(EnumType.STRING)
+    private PaymentType paymentType;
 }

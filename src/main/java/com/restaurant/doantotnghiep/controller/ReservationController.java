@@ -1,5 +1,6 @@
 package com.restaurant.doantotnghiep.controller;
 
+import com.restaurant.doantotnghiep.dto.ReservationResponse;
 import com.restaurant.doantotnghiep.entity.Reservation;
 import com.restaurant.doantotnghiep.entity.enums.ReservationStatus;
 import com.restaurant.doantotnghiep.service.ReservationService;
@@ -26,7 +27,7 @@ public class ReservationController {
 
     @GetMapping("/pending")
     @PreAuthorize("hasAnyRole('MANAGER','ADMIN','EMPLOYEE')")
-    public List<Reservation> getPendingReservations() {
+    public List<ReservationResponse> getPendingReservations() {
         return reservationService.getPendingReservations();
     }
 
