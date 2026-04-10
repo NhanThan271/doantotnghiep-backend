@@ -85,11 +85,6 @@ public class WebSecurityConfig {
                                 "/api/auth/**",
                                 "/api/test/**",
                                 "/uploads/**",
-                                "/api/foods/**",
-                                "/api/branches/**",
-                                "/api/reservations/**",
-                                "/api/tables/**",
-                                "/api/categories/**",
                                 // === Cho MoMo ===
                                 "/api/momo/**",
                                 "/api/payos/**",
@@ -97,6 +92,13 @@ public class WebSecurityConfig {
                         .permitAll()
                         .requestMatchers("/api/customer/orders").permitAll()
                         .requestMatchers("/api/tables/branch/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/foods/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/categories/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/payments/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/tables/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/reservations/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/branches/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/promotions/**").permitAll()
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
 

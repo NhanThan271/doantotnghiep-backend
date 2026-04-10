@@ -8,7 +8,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/employee/payments")
+@RequestMapping("/api/payments")
 @CrossOrigin(origins = "http://localhost:3000")
 public class PaymentController {
 
@@ -16,7 +16,6 @@ public class PaymentController {
     private PaymentService paymentService;
 
     @PostMapping("/{orderId}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
     public ResponseEntity<Payment> createPayment(
             @PathVariable Long orderId,
             @RequestBody Payment payment) {
