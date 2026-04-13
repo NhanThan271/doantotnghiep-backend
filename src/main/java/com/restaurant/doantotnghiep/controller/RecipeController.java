@@ -25,12 +25,20 @@ public class RecipeController {
         return recipeService.createMany(request);
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("/food/{foodId}")
     @PreAuthorize("hasAnyRole('ADMIN')")
     public List<Recipe> updateMany(
             @PathVariable Long foodId,
             @RequestBody List<RecipeRequest.IngredientItem> items) {
         return recipeService.updateMany(foodId, items);
+    }
+
+    @PutMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN')")
+    public Recipe updateOne(
+            @PathVariable Long id,
+            @RequestParam Double quantityRequired) {
+        return recipeService.updateOne(id, quantityRequired);
     }
 
     @DeleteMapping("/{id}")

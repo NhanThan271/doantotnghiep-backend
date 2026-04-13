@@ -11,6 +11,8 @@ public interface RecipeService {
 
     List<Recipe> updateMany(Long foodId, List<RecipeRequest.IngredientItem> items);
 
+    Recipe updateOne(Long id, Double quantityRequired);
+
     void delete(Long id);
 
     Recipe getById(Long id);
