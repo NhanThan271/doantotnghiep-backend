@@ -4,6 +4,7 @@ import com.restaurant.doantotnghiep.entity.Branch;
 import com.restaurant.doantotnghiep.entity.User;
 import com.restaurant.doantotnghiep.entity.enums.Role;
 import com.restaurant.doantotnghiep.repository.BranchRepository;
+import com.restaurant.doantotnghiep.repository.StaffRepository;
 import com.restaurant.doantotnghiep.repository.UserRepository;
 import com.restaurant.doantotnghiep.service.StorageService;
 import com.restaurant.doantotnghiep.service.UserService;
@@ -29,6 +30,9 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private StaffRepository staffRepository;
 
     @Override
     public List<User> getAllUsers() {
@@ -105,6 +109,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public void deleteUser(Long id) {
         User existing = getUserById(id);
+        staffRepository.findByUserId(id).ifPresent(staffRepository::delete);
         userRepository.delete(existing);
     }
 }
