@@ -14,4 +14,6 @@ public interface BranchFoodService {
     List<FoodWithPromotionDTO> getFoodsWithPromotionByBranch(Long branchId);
 
     Optional<BranchFood> findById(Long id);
+
+    List<BranchFood> getByBranchAndCategory(Long branchId, Long categoryId);
 }

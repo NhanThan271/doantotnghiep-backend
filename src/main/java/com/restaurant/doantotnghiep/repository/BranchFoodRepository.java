@@ -37,4 +37,10 @@ public interface BranchFoodRepository extends JpaRepository<BranchFood, Long> {
     @Query("SELECT bp FROM BranchFood bp WHERE bp.branch.id = :branchId AND bp.isActive = true")
     List<BranchFood> findAllByBranchId(@Param("branchId") Long branchId);
 
+    List<BranchFood> findByBranch_Id(Long branchId);
+
+    List<BranchFood> findByBranch_IdAndFood_Category_Id(Long branchId, Long categoryId);
+
+    List<BranchFood> findByBranch_IdAndFood_Category_IdAndIsActiveTrue(Long branchId, Long categoryId);
+
 }

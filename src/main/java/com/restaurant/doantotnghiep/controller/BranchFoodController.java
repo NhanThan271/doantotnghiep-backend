@@ -26,7 +26,13 @@ public class BranchFoodController {
     }
 
     @GetMapping("/branch/{branchId}")
-    public List<BranchFood> getByBranch(@PathVariable Long branchId) {
+    public List<BranchFood> getByBranch(
+            @PathVariable Long branchId,
+            @RequestParam(required = false) Long categoryId) {
+
+        if (categoryId != null) {
+            return service.getByBranchAndCategory(branchId, categoryId);
+        }
         return service.getByBranch(branchId);
     }
 
