@@ -1,7 +1,8 @@
 package com.restaurant.doantotnghiep.controller;
 
+import com.restaurant.doantotnghiep.dto.StaffDTO;
 import com.restaurant.doantotnghiep.entity.Staff;
-import com.restaurant.doantotnghiep.entity.enums.StaffStatus;
+import com.restaurant.doantotnghiep.entity.enums.StaffPosition;
 import com.restaurant.doantotnghiep.service.StaffService;
 import lombok.RequiredArgsConstructor;
 
@@ -24,17 +25,17 @@ public class StaffController {
     public Staff create(
             @RequestParam Long userId,
             @RequestParam Long branchId,
-            @RequestParam StaffStatus status) {
-        return service.create(userId, branchId, status);
+            @RequestParam StaffPosition position) {
+        return service.create(userId, branchId, position);
     }
 
     // Update vai trò (WAITER → CHEF…)
-    @PutMapping("/{id}/status")
+    @PutMapping("/{id}/position")
     @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
-    public Staff updateStatus(
+    public StaffDTO updatePosition(
             @PathVariable Long id,
-            @RequestParam StaffStatus status) {
-        return service.updateStatus(id, status);
+            @RequestParam StaffPosition position) {
+        return service.updatePosition(id, position);
     }
 
     // Xóa staff
@@ -47,15 +48,15 @@ public class StaffController {
     // Lấy theo chi nhánh
     @GetMapping("/branch/{branchId}")
     @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
-    public List<Staff> getByBranch(@PathVariable Long branchId) {
+    public List<StaffDTO> getByBranch(@PathVariable Long branchId) {
         return service.getByBranch(branchId);
     }
 
     // Lọc theo role staff
     @GetMapping("/status")
     @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
-    public List<Staff> getByStatus(@RequestParam StaffStatus status) {
-        return service.getByStatus(status);
+    public List<Staff> getByStatus(@RequestParam StaffPosition position) {
+        return service.getByStatus(position);
     }
 
     // Lọc theo branch + role
@@ -63,8 +64,8 @@ public class StaffController {
     @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
     public List<Staff> getByBranchAndStatus(
             @PathVariable Long branchId,
-            @RequestParam StaffStatus status) {
-        return service.getByBranchAndStatus(branchId, status);
+            @RequestParam StaffPosition position) {
+        return service.getByBranchAndStatus(branchId, position);
     }
 
     // Chi tiết

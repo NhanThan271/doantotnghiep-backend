@@ -89,6 +89,13 @@ public class RecipeServiceImpl implements RecipeService {
     }
 
     @Override
+    public Recipe updateOne(Long id, Double quantityRequired) {
+        Recipe recipe = getById(id);
+        recipe.setQuantityRequired(quantityRequired);
+        return recipeRepository.save(recipe);
+    }
+
+    @Override
     public void delete(Long id) {
         Recipe recipe = getById(id);
         recipeRepository.delete(recipe);

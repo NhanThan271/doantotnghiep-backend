@@ -52,13 +52,11 @@ public class RoomController {
     }
 
     @GetMapping("/branch/{branchId}")
-    @PreAuthorize("hasAnyRole('ADMIN','EMPLOYEE','MANAGER')")
     public List<Room> getByBranch(@PathVariable Long branchId) {
         return service.getByBranch(branchId);
     }
 
     @GetMapping("/status")
-    @PreAuthorize("hasAnyRole('ADMIN','EMPLOYEE','MANAGER')")
     public List<Room> getByStatus(@RequestParam Status status) {
         return service.getByStatus(status);
     }
