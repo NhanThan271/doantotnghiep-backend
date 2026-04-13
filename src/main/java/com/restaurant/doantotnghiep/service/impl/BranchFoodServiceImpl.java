@@ -171,4 +171,9 @@ public class BranchFoodServiceImpl implements BranchFoodService {
     public Optional<BranchFood> findById(Long id) {
         return repository.findById(id);
     }
+
+    @Override
+    public List<BranchFood> getByBranchAndCategory(Long branchId, Long categoryId) {
+        return repository.findByBranch_IdAndFood_Category_IdAndIsActiveTrue(branchId, categoryId);
+    }
 }
