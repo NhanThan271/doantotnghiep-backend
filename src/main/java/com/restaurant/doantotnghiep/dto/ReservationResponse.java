@@ -10,6 +10,7 @@ import lombok.*;
 @Builder
 public class ReservationResponse {
     private Long id;
+    private Long userId;
     private String customerName;
     private String phone;
     private String email;
