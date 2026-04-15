@@ -15,6 +15,7 @@ public class ReservationResponse {
     private String email;
     private String branchName;
     private Integer tableNumber;
+    private Integer roomNumber;
     private Double remainingAmount;
     private String status;
     private LocalDateTime reservationTime;
