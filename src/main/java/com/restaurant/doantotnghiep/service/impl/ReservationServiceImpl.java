@@ -129,6 +129,7 @@ public class ReservationServiceImpl implements ReservationService {
                                 .stream()
                                 .map(r -> ReservationResponse.builder()
                                                 .id(r.getId())
+                                                .userId(r.getUser() != null ? r.getUser().getId() : null)
                                                 .customerName(r.getCustomerName())
                                                 .phone(r.getCustomerPhone())
                                                 .email(r.getCustomerEmail())
