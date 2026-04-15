@@ -22,8 +22,8 @@ public class ReservationItem {
     private Reservation reservation;
 
     @ManyToOne
-    @JoinColumn(name = "food_id", nullable = false)
-    private Food food;
+    @JoinColumn(name = "branch_food_id", nullable = false)
+    private BranchFood branchFood;
 
     @Column(nullable = false)
     private Integer quantity;

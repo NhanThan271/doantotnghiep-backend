@@ -6,7 +6,7 @@ import java.util.List;
 
 public interface ReservationItemService {
 
-    ReservationItem create(Long reservationId, Long foodId, Integer quantity);
+    ReservationItem create(Long reservationId, Long branchFoodId, Integer quantity);
 
     ReservationItem update(Long id, Integer quantity);
 

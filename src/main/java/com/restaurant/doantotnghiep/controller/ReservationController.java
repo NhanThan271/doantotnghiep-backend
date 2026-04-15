@@ -26,7 +26,6 @@ public class ReservationController {
     }
 
     @GetMapping("/pending")
-    @PreAuthorize("hasAnyRole('MANAGER','ADMIN','EMPLOYEE')")
     public List<ReservationResponse> getPendingReservations() {
         return reservationService.getPendingReservations();
     }
