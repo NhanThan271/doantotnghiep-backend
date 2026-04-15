@@ -137,6 +137,10 @@ public class ReservationServiceImpl implements ReservationService {
                                                                 r.getTable() != null
                                                                                 ? r.getTable().getNumber()
                                                                                 : (Integer) null)
+                                                .roomNumber(
+                                                                r.getRoom() != null
+                                                                                ? r.getRoom().getNumber()
+                                                                                : (Integer) null)
                                                 .status(r.getStatus().name())
                                                 .reservationTime(r.getReservationTime())
                                                 .remainingAmount(r.getTotalPrice() - r.getDepositAmount())
