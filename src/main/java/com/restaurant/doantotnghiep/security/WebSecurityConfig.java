@@ -97,6 +97,7 @@ public class WebSecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/payments/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/tables/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/reservations/full").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/reservations/pending").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/branches/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/promotions/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/rooms/**").permitAll()

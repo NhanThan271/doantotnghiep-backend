@@ -6,6 +6,7 @@ import com.restaurant.doantotnghiep.service.ReservationItemService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Service
@@ -14,22 +15,33 @@ public class ReservationItemServiceImpl implements ReservationItemService {
 
     private final ReservationItemRepository repository;
     private final ReservationRepository reservationRepository;
-    private final FoodRepository foodRepository;
+    private final BranchFoodRepository branchFoodRepository;
 
     @Override
-    public ReservationItem create(Long reservationId, Long foodId, Integer quantity) {
+    public ReservationItem create(Long reservationId, Long branchFoodId, Integer quantity) {
         Reservation reservation = reservationRepository.findById(reservationId)
                 .orElseThrow(() -> new RuntimeException("Reservation not found"));
 
-        Food food = foodRepository.findById(foodId)
-                .orElseThrow(() -> new RuntimeException("Food not found"));
+        BranchFood branchFood = branchFoodRepository.findById(branchFoodId)
+                .orElseThrow(() -> new RuntimeException("BranchFood not found"));
+
+        if (branchFood.getStockQuantity() < quantity) {
+            throw new RuntimeException("Not enough stock");
+        }
+
+        Double price = branchFood.getCustomPrice() != null
+                ? branchFood.getCustomPrice()
+                : branchFood.getFood().getPrice().doubleValue();
 
         ReservationItem item = ReservationItem.builder()
                 .reservation(reservation)
-                .food(food)
+                .branchFood(branchFood)
                 .quantity(quantity)
-                .price(food.getPrice()) // lấy giá tại thời điểm đặt
+                .price(BigDecimal.valueOf(price))
                 .build();
+
+        branchFood.setStockQuantity(branchFood.getStockQuantity() - quantity);
+        branchFoodRepository.save(branchFood);
 
         return repository.save(item);
     }

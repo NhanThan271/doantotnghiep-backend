@@ -2,6 +2,7 @@ package com.restaurant.doantotnghiep.service.impl;
 
 import com.restaurant.doantotnghiep.dto.ReservationResponse;
 import com.restaurant.doantotnghiep.entity.Branch;
+import com.restaurant.doantotnghiep.entity.BranchFood;
 import com.restaurant.doantotnghiep.entity.Food;
 import com.restaurant.doantotnghiep.entity.Reservation;
 import com.restaurant.doantotnghiep.entity.ReservationItem;
@@ -10,6 +11,7 @@ import com.restaurant.doantotnghiep.entity.TableEntity;
 import com.restaurant.doantotnghiep.entity.User;
 import com.restaurant.doantotnghiep.entity.enums.PaymentStatus;
 import com.restaurant.doantotnghiep.entity.enums.ReservationStatus;
+import com.restaurant.doantotnghiep.repository.BranchFoodRepository;
 import com.restaurant.doantotnghiep.repository.BranchRepository;
 import com.restaurant.doantotnghiep.repository.FoodRepository;
 import com.restaurant.doantotnghiep.repository.ReservationItemRepository;
@@ -23,6 +25,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -38,7 +41,7 @@ public class ReservationServiceImpl implements ReservationService {
         private final BranchRepository branchRepository;
         private final TableRepository tableRepository;
         private final RoomRepository roomRepository;
-        private final FoodRepository foodRepository;
+        private final BranchFoodRepository branchFoodRepository;
         private final ReservationItemRepository reservationItemRepository;
 
         @Transactional
@@ -93,22 +96,26 @@ public class ReservationServiceImpl implements ReservationService {
                 double total = 0;
 
                 for (Map<String, Object> item : items) {
-                        Long foodId = Long.valueOf(item.get("foodId").toString());
+                        Long branchFoodId = Long.valueOf(item.get("branchFoodId").toString());
                         Integer quantity = Integer.valueOf(item.get("quantity").toString());
 
-                        Food food = foodRepository.findById(foodId)
-                                        .orElseThrow(() -> new RuntimeException("Food not found"));
+                        BranchFood branchFood = branchFoodRepository.findById(branchFoodId)
+                                        .orElseThrow(() -> new RuntimeException("BranchFood not found"));
 
                         ReservationItem reservationItem = ReservationItem.builder()
                                         .reservation(reservation)
-                                        .food(food)
+                                        .branchFood(branchFood)
                                         .quantity(quantity)
-                                        .price(food.getPrice())
+                                        .price(BigDecimal.valueOf(
+                                                        branchFood.getCustomPrice() != null
+                                                                        ? branchFood.getCustomPrice()
+                                                                        : branchFood.getFood().getPrice()
+                                                                                        .doubleValue()))
                                         .build();
 
                         reservationItemRepository.save(reservationItem);
 
-                        total += food.getPrice().doubleValue() * quantity;
+                        total += reservationItem.getPrice().doubleValue() * quantity;
                 }
 
                 reservation.setTotalPrice(total);
@@ -132,6 +139,7 @@ public class ReservationServiceImpl implements ReservationService {
                                                                                 : (Integer) null)
                                                 .status(r.getStatus().name())
                                                 .reservationTime(r.getReservationTime())
+                                                .remainingAmount(r.getTotalPrice() - r.getDepositAmount())
                                                 .build())
                                 .collect(Collectors.toList());
         }
