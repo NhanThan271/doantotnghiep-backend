@@ -76,7 +76,9 @@ public class AuthController {
                 // tạo user
                 User user = new User();
                 user.setUsername(registerDto.getUsername());
+                user.setFullName(registerDto.getFullName());
                 user.setPassword(passwordEncoder.encode(registerDto.getPassword()));
+                user.setPhone(registerDto.getPhone());
                 user.setEmail(registerDto.getEmail());
                 user.setRole(roleEnum);
 
