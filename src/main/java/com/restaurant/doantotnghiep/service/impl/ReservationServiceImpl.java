@@ -47,7 +47,20 @@ public class ReservationServiceImpl implements ReservationService {
         @Transactional
         public Reservation createFullReservation(Map<String, Object> request) {
 
-                Long userId = Long.valueOf(request.get("userId").toString());
+                Long userId = request.get("userId") != null
+                                ? Long.valueOf(request.get("userId").toString())
+                                : null;
+                String customerName = request.get("customerName") != null
+                                ? request.get("customerName").toString()
+                                : null;
+
+                String customerPhone = request.get("customerPhone") != null
+                                ? request.get("customerPhone").toString()
+                                : null;
+
+                String customerEmail = request.get("customerEmail") != null
+                                ? request.get("customerEmail").toString()
+                                : null;
                 Long branchId = Long.valueOf(request.get("branchId").toString());
 
                 Long tableId = request.get("tableId") != null
@@ -63,8 +76,11 @@ public class ReservationServiceImpl implements ReservationService {
 
                 List<Map<String, Object>> items = (List<Map<String, Object>>) request.get("items");
 
-                User user = userRepository.findById(userId)
-                                .orElseThrow(() -> new RuntimeException("User not found"));
+                User user = null;
+                if (userId != null) {
+                        user = userRepository.findById(userId)
+                                        .orElseThrow(() -> new RuntimeException("User not found"));
+                }
 
                 Branch branch = branchRepository.findById(branchId)
                                 .orElseThrow(() -> new RuntimeException("Branch not found"));
@@ -80,6 +96,9 @@ public class ReservationServiceImpl implements ReservationService {
                 LocalDateTime time = LocalDateTime.parse(reservationTime, formatter);
                 Reservation reservation = Reservation.builder()
                                 .user(user)
+                                .customerName(customerName)
+                                .customerPhone(customerPhone)
+                                .customerEmail(customerEmail)
                                 .branch(branch)
                                 .table(table)
                                 .room(room)
