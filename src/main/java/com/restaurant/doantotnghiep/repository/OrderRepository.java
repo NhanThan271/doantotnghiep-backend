@@ -27,15 +27,21 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
 
         @EntityGraph(attributePaths = {
                         "items",
-                        "items.product",
-                        "items.branchProduct",
-                        "items.branchProduct.product",
+                        "items.food",
+                        "items.branchFood",
+                        "items.branchFood.food",
                         "table",
                         "promotion",
                         "branch",
                         "employee"
         })
-        @Query("SELECT DISTINCT o FROM Order o WHERE o.id = :id")
+
+        @Query("SELECT DISTINCT o FROM Order o " +
+                        "LEFT JOIN FETCH o.items i " +
+                        "LEFT JOIN FETCH i.food " +
+                        "LEFT JOIN FETCH o.table " +
+                        "LEFT JOIN FETCH o.promotion " +
+                        "WHERE o.id = :id")
         Optional<Order> findWithItemsById(@Param("id") Long id);
 
         @Query("SELECT o FROM Order o " +

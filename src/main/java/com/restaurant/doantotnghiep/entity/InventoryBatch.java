@@ -19,6 +19,10 @@ public class InventoryBatch {
     private Long id;
 
     @ManyToOne
+    @JoinColumn(name = "warehouse_id")
+    private Warehouse warehouse;
+
+    @ManyToOne
     @JoinColumn(name = "branch_id")
     private Branch branch;
 
