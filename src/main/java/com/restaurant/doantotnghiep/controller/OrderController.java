@@ -64,8 +64,11 @@ public class OrderController {
     // Xem chi tiết đơn hàng theo ID
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN','MANAGER', 'EMPLOYEE')")
-    public Order getOrderById(@PathVariable Long id) {
-        return orderService.getOrderById(id);
+    @Transactional
+    public ResponseEntity<?> getOrderById(@PathVariable Long id) {
+        Order order = orderRepository.findWithItemsById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng #" + id));
+        return ResponseEntity.ok(OrderMapper.toStatusDTO(order));
     }
 
     // Tạo đơn hàng mới → realtime gửi cho nhân viên (barista)

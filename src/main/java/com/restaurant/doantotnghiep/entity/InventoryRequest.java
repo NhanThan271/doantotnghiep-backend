@@ -22,6 +22,10 @@ public class InventoryRequest {
     @JoinColumn(name = "branch_id", nullable = false)
     private Branch branch;
 
+    @ManyToOne
+    @JoinColumn(name = "warehouse_id")
+    private Warehouse warehouse;
+
     @Enumerated(EnumType.STRING)
     private RequestStatus status = RequestStatus.PENDING;
 

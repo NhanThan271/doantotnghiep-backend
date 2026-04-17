@@ -10,10 +10,16 @@ import com.restaurant.doantotnghiep.entity.BranchIngredient;
 import com.restaurant.doantotnghiep.entity.InventoryRequest;
 import com.restaurant.doantotnghiep.entity.InventoryRequestItem;
 import com.restaurant.doantotnghiep.entity.User;
+import com.restaurant.doantotnghiep.entity.WarehouseExport;
+import com.restaurant.doantotnghiep.entity.WarehouseExportItem;
+import com.restaurant.doantotnghiep.entity.WarehouseInventory;
 import com.restaurant.doantotnghiep.entity.enums.RequestStatus;
 import com.restaurant.doantotnghiep.repository.BranchIngredientRepository;
 import com.restaurant.doantotnghiep.repository.InventoryRequestItemRepository;
 import com.restaurant.doantotnghiep.repository.InventoryRequestRepository;
+import com.restaurant.doantotnghiep.repository.WarehouseExportItemRepository;
+import com.restaurant.doantotnghiep.repository.WarehouseExportRepository;
+import com.restaurant.doantotnghiep.repository.WarehouseInventoryRepository;
 import com.restaurant.doantotnghiep.service.InventoryRequestService;
 
 import lombok.RequiredArgsConstructor;
@@ -25,6 +31,9 @@ public class InventoryRequestServiceImpl implements InventoryRequestService {
     private final InventoryRequestRepository repository;
     private final InventoryRequestItemRepository itemRepo;
     private final BranchIngredientRepository branchIngredientRepo;
+    private final WarehouseInventoryRepository warehouseInventoryRepo;
+    private final WarehouseExportRepository exportRepo;
+    private final WarehouseExportItemRepository exportItemRepo;
 
     @Override
     public InventoryRequest create(InventoryRequest request, User requester) {
@@ -42,11 +51,49 @@ public class InventoryRequestServiceImpl implements InventoryRequestService {
             throw new RuntimeException("Only PENDING requests can be approved");
         }
 
-        // 1. Lấy danh sách nguyên liệu yêu cầu
+        if (req.getWarehouse() == null) {
+            throw new RuntimeException("Request chưa chọn kho");
+        }
+
+        // Lấy danh sách nguyên liệu yêu cầu
         List<InventoryRequestItem> items = itemRepo.findByRequestId(req.getId());
 
-        // 2. Cộng kho cho từng nguyên liệu
+        if (items.isEmpty()) {
+            throw new RuntimeException("Request không có nguyên liệu");
+        }
+
+        Long warehouseId = req.getWarehouse().getId();
+
+        // Check tồn kho
         for (InventoryRequestItem item : items) {
+            WarehouseInventory wi = warehouseInventoryRepo
+                    .findByWarehouseIdAndIngredientId(warehouseId, item.getIngredient().getId())
+                    .orElseThrow(() -> new RuntimeException("Ingredient not in warehouse"));
+
+            if (wi.getQuantity() < item.getQuantity()) {
+                throw new RuntimeException("Không đủ kho: " + item.getIngredient().getName());
+            }
+        }
+
+        // tạo phiếu xuất kho
+        WarehouseExport export = WarehouseExport.builder()
+                .warehouse(req.getWarehouse())
+                .branch(req.getBranch())
+                .request(req)
+                .createdBy(approver)
+                .build();
+
+        export = exportRepo.save(export);
+
+        // xử lý xuất kho
+        for (InventoryRequestItem item : items) {
+
+            WarehouseInventory wi = warehouseInventoryRepo
+                    .findByWarehouseIdAndIngredientId(warehouseId, item.getIngredient().getId())
+                    .get();
+
+            wi.setQuantity(wi.getQuantity() - item.getQuantity());
+            warehouseInventoryRepo.save(wi);
 
             BranchIngredient bi = branchIngredientRepo
                     .findByBranchIdAndIngredientId(
@@ -61,9 +108,17 @@ public class InventoryRequestServiceImpl implements InventoryRequestService {
 
             bi.setQuantity(bi.getQuantity() + item.getQuantity());
             branchIngredientRepo.save(bi);
+
+            WarehouseExportItem exportItem = WarehouseExportItem.builder()
+                    .export(export)
+                    .ingredient(item.getIngredient())
+                    .quantity(item.getQuantity())
+                    .build();
+
+            exportItemRepo.save(exportItem);
         }
 
-        // 3. Update trạng thái request
+        // cập nhật trạng thái request
         req.setStatus(RequestStatus.APPROVED);
         req.setApprovedBy(approver);
         req.setApprovedAt(LocalDateTime.now());
