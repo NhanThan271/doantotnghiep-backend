@@ -2,12 +2,13 @@ package com.restaurant.doantotnghiep.service;
 
 import java.util.List;
 
+import com.restaurant.doantotnghiep.dto.InventoryRequestCreateDTO;
 import com.restaurant.doantotnghiep.entity.InventoryRequest;
 import com.restaurant.doantotnghiep.entity.User;
 
 public interface InventoryRequestService {
 
-    InventoryRequest create(InventoryRequest request, User requester);
+    InventoryRequest create(InventoryRequestCreateDTO dto, User requester);
 
     InventoryRequest approve(Long id, User approver);
 

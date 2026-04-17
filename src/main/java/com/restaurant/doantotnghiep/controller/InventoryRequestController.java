@@ -1,5 +1,6 @@
 package com.restaurant.doantotnghiep.controller;
 
+import com.restaurant.doantotnghiep.dto.InventoryRequestCreateDTO;
 import com.restaurant.doantotnghiep.entity.InventoryRequest;
 import com.restaurant.doantotnghiep.entity.User;
 import com.restaurant.doantotnghiep.service.InventoryRequestService;
@@ -23,9 +24,9 @@ public class InventoryRequestController {
     @PostMapping
     @PreAuthorize("hasRole('MANAGER')")
     public InventoryRequest create(
-            @RequestBody InventoryRequest request,
+            @RequestBody InventoryRequestCreateDTO dto,
             @AuthenticationPrincipal User currentUser) {
-        return service.create(request, currentUser);
+        return service.create(dto, currentUser);
     }
 
     @PutMapping("/{id}/approve")

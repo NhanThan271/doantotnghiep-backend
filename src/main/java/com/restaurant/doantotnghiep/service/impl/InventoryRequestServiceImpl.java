@@ -6,20 +6,28 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.restaurant.doantotnghiep.dto.InventoryRequestCreateDTO;
+import com.restaurant.doantotnghiep.entity.Branch;
 import com.restaurant.doantotnghiep.entity.BranchIngredient;
+import com.restaurant.doantotnghiep.entity.Ingredient;
 import com.restaurant.doantotnghiep.entity.InventoryRequest;
 import com.restaurant.doantotnghiep.entity.InventoryRequestItem;
 import com.restaurant.doantotnghiep.entity.User;
+import com.restaurant.doantotnghiep.entity.Warehouse;
 import com.restaurant.doantotnghiep.entity.WarehouseExport;
 import com.restaurant.doantotnghiep.entity.WarehouseExportItem;
 import com.restaurant.doantotnghiep.entity.WarehouseInventory;
 import com.restaurant.doantotnghiep.entity.enums.RequestStatus;
+import com.restaurant.doantotnghiep.entity.enums.RequestType;
 import com.restaurant.doantotnghiep.repository.BranchIngredientRepository;
+import com.restaurant.doantotnghiep.repository.BranchRepository;
+import com.restaurant.doantotnghiep.repository.IngredientRepository;
 import com.restaurant.doantotnghiep.repository.InventoryRequestItemRepository;
 import com.restaurant.doantotnghiep.repository.InventoryRequestRepository;
 import com.restaurant.doantotnghiep.repository.WarehouseExportItemRepository;
 import com.restaurant.doantotnghiep.repository.WarehouseExportRepository;
 import com.restaurant.doantotnghiep.repository.WarehouseInventoryRepository;
+import com.restaurant.doantotnghiep.repository.WarehouseRepository;
 import com.restaurant.doantotnghiep.service.InventoryRequestService;
 
 import lombok.RequiredArgsConstructor;
@@ -34,12 +42,44 @@ public class InventoryRequestServiceImpl implements InventoryRequestService {
     private final WarehouseInventoryRepository warehouseInventoryRepo;
     private final WarehouseExportRepository exportRepo;
     private final WarehouseExportItemRepository exportItemRepo;
+    private final BranchRepository branchRepo;
+    private final WarehouseRepository warehouseRepo;
+    private final IngredientRepository ingredientRepo;
 
     @Override
-    public InventoryRequest create(InventoryRequest request, User requester) {
-        request.setRequestedBy(requester);
-        request.setStatus(RequestStatus.PENDING);
-        return repository.save(request);
+    @Transactional
+    public InventoryRequest create(InventoryRequestCreateDTO dto, User requester) {
+        Branch branch = branchRepo.findById(dto.getBranchId())
+                .orElseThrow(() -> new RuntimeException("Branch not found"));
+
+        Warehouse warehouse = warehouseRepo.findById(dto.getWarehouseId())
+                .orElseThrow(() -> new RuntimeException("Warehouse not found"));
+
+        InventoryRequest request = InventoryRequest.builder()
+                .branch(branch)
+                .warehouse(warehouse)
+                .type(RequestType.valueOf(dto.getType()))
+                .reason(dto.getReason())
+                .status(RequestStatus.PENDING)
+                .requestedBy(requester)
+                .build();
+
+        request = repository.save(request);
+
+        for (InventoryRequestCreateDTO.ItemDTO itemDto : dto.getItems()) {
+            Ingredient ingredient = ingredientRepo.findById(itemDto.getIngredientId())
+                    .orElseThrow(() -> new RuntimeException("Ingredient not found"));
+
+            InventoryRequestItem item = InventoryRequestItem.builder()
+                    .request(request)
+                    .ingredient(ingredient)
+                    .quantity(itemDto.getQuantity())
+                    .build();
+
+            itemRepo.save(item);
+        }
+
+        return request;
     }
 
     @Override

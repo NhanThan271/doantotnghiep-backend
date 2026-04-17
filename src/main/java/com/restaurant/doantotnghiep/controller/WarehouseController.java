@@ -2,6 +2,8 @@ package com.restaurant.doantotnghiep.controller;
 
 import com.restaurant.doantotnghiep.dto.WarehouseImportRequest;
 import com.restaurant.doantotnghiep.entity.Warehouse;
+import com.restaurant.doantotnghiep.entity.WarehouseInventory;
+import com.restaurant.doantotnghiep.repository.WarehouseInventoryRepository;
 import com.restaurant.doantotnghiep.service.WarehouseService;
 import lombok.RequiredArgsConstructor;
 
@@ -16,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 public class WarehouseController {
 
     private final WarehouseService warehouseService;
+    private final WarehouseInventoryRepository warehouseInventoryRepository;
 
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
@@ -34,5 +37,11 @@ public class WarehouseController {
     public String importWarehouse(@RequestBody WarehouseImportRequest request) {
         warehouseService.importWarehouse(request);
         return "Nhập kho thành công";
+    }
+
+    @GetMapping("/inventory-history")
+    @PreAuthorize("hasRole('ADMIN')")
+    public List<WarehouseInventory> getInventoryHistory() {
+        return warehouseInventoryRepository.findAll();
     }
 }

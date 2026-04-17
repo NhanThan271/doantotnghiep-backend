@@ -1,5 +1,8 @@
 package com.restaurant.doantotnghiep.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -18,10 +21,12 @@ public class InventoryRequestItem {
 
     @ManyToOne
     @JoinColumn(name = "request_id", nullable = false)
+    @JsonIgnore
     private InventoryRequest request;
 
     @ManyToOne
     @JoinColumn(name = "ingredient_id", nullable = false)
+    @JsonIgnoreProperties({ "category" })
     private Ingredient ingredient;
 
     @Column(nullable = false)
