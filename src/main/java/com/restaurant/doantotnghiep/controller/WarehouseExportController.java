@@ -5,7 +5,7 @@ import com.restaurant.doantotnghiep.entity.WarehouseExportItem;
 import com.restaurant.doantotnghiep.repository.WarehouseExportItemRepository;
 import com.restaurant.doantotnghiep.repository.WarehouseExportRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.RestController;
+
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
@@ -22,7 +22,7 @@ public class WarehouseExportController {
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
     public List<WarehouseExport> getAll() {
-        return exportRepository.findAllByOrderByCreatedAtDesc();
+        return exportRepository.findAllWithDetails();
     }
 
     @GetMapping("/{id}")

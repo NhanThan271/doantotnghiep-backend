@@ -5,6 +5,8 @@ import lombok.*;
 
 import java.time.LocalDateTime;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 @Entity
 @Table(name = "warehouse_exports")
 @Getter
@@ -18,20 +20,23 @@ public class WarehouseExport {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "warehouse_id", nullable = false)
+    @JsonIgnoreProperties({ "inventories", "hibernateLazyInitializer", "handler" })
     private Warehouse warehouse;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "branch_id", nullable = false)
+    @JsonIgnoreProperties({ "ingredients", "tables", "hibernateLazyInitializer", "handler" })
     private Branch branch;
 
     @ManyToOne
     @JoinColumn(name = "request_id")
     private InventoryRequest request;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "created_by")
+    @JsonIgnoreProperties({ "password", "roles", "branches", "hibernateLazyInitializer", "handler" })
     private User createdBy;
 
     private LocalDateTime createdAt;

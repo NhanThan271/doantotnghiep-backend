@@ -12,6 +12,8 @@ public interface InventoryRequestService {
 
     InventoryRequest approve(Long id, User approver);
 
+    InventoryRequest confirmReceived(Long id, User manager);
+
     InventoryRequest reject(Long id, String note, User approver);
 
     List<InventoryRequest> getAll();
