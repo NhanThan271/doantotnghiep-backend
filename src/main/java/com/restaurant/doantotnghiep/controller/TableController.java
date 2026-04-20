@@ -1,6 +1,7 @@
 package com.restaurant.doantotnghiep.controller;
 
 import com.restaurant.doantotnghiep.entity.TableEntity;
+import com.restaurant.doantotnghiep.entity.enums.Status;
 import com.restaurant.doantotnghiep.repository.TableRepository;
 import com.restaurant.doantotnghiep.service.TableService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,22 +30,11 @@ public class TableController {
         return tableService.getTableById(id);
     }
 
-    @PutMapping("/{id}/occupy")
-    @PreAuthorize("hasAnyRole('ADMIN','MANAGER', 'EMPLOYEE', 'CUSTOMER')")
-    public TableEntity occupyTable(@PathVariable Long id) {
-        return tableService.occupyTable(id);
-    }
-
-    @PutMapping("/{id}/free")
-    @PreAuthorize("hasAnyRole('ADMIN','MANAGER', 'EMPLOYEE')")
-    public TableEntity freeTable(@PathVariable Long id) {
-        return tableService.freeTable(id);
-    }
-
-    @PutMapping("/{id}/reserved")
-    @PreAuthorize("hasAnyRole('ADMIN','MANAGER', 'EMPLOYEE', 'CUSTOMER')")
-    public TableEntity reserveTable(@PathVariable Long id) {
-        return tableService.reserveTable(id);
+    @PutMapping("/{id}/status")
+    public TableEntity updateTableStatus(
+            @PathVariable Long id,
+            @RequestParam Status status) {
+        return tableService.updateTableStatus(id, status);
     }
 
     @PostMapping
