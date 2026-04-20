@@ -15,6 +15,7 @@ import com.restaurant.doantotnghiep.entity.enums.RequestType;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@JsonIgnoreProperties({ "hibernateLazyInitializer", "handler" })
 public class InventoryRequest {
 
     @Id
@@ -34,9 +35,9 @@ public class InventoryRequest {
     @Enumerated(EnumType.STRING)
     private RequestStatus status = RequestStatus.PENDING;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "requested_by_id")
-    @JsonIgnoreProperties({ "password", "roles", "branches" })
+    @JsonIgnoreProperties({ "password", "roles", "branches", "hibernateLazyInitializer", "handler" })
     private User requestedBy;
 
     @Enumerated(EnumType.STRING)
@@ -46,8 +47,9 @@ public class InventoryRequest {
     @Column(name = "reason", columnDefinition = "TEXT")
     private String reason;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "approved_by_id")
+    @JsonIgnoreProperties({ "password", "roles", "branches", "hibernateLazyInitializer", "handler" })
     private User approvedBy;
 
     @Column(columnDefinition = "TEXT")
@@ -55,6 +57,13 @@ public class InventoryRequest {
 
     private LocalDateTime requestedAt;
     private LocalDateTime approvedAt;
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "received_by_id")
+    @JsonIgnoreProperties({ "password", "roles", "branches", "hibernateLazyInitializer", "handler" })
+    private User receivedBy;
+
+    private LocalDateTime receivedAt;
 
     @PrePersist
     public void prePersist() {

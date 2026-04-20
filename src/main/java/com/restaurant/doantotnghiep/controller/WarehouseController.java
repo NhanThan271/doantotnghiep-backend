@@ -27,7 +27,7 @@ public class WarehouseController {
     }
 
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     public List<Warehouse> getAll() {
         return warehouseService.getAll();
     }

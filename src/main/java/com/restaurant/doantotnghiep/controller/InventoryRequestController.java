@@ -3,6 +3,7 @@ package com.restaurant.doantotnghiep.controller;
 import com.restaurant.doantotnghiep.dto.InventoryRequestCreateDTO;
 import com.restaurant.doantotnghiep.entity.InventoryRequest;
 import com.restaurant.doantotnghiep.entity.User;
+import com.restaurant.doantotnghiep.repository.UserRepository;
 import com.restaurant.doantotnghiep.service.InventoryRequestService;
 
 import java.util.List;
@@ -10,6 +11,8 @@ import java.util.List;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import lombok.RequiredArgsConstructor;
 
@@ -20,12 +23,18 @@ import lombok.RequiredArgsConstructor;
 public class InventoryRequestController {
 
     private final InventoryRequestService service;
+    private final UserRepository userRepository;
 
     @PostMapping
     @PreAuthorize("hasRole('MANAGER')")
     public InventoryRequest create(
             @RequestBody InventoryRequestCreateDTO dto,
-            @AuthenticationPrincipal User currentUser) {
+            Authentication authentication) {
+
+        String username = authentication.getName();
+        User currentUser = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
         return service.create(dto, currentUser);
     }
 
@@ -33,8 +42,20 @@ public class InventoryRequestController {
     @PreAuthorize("hasRole('ADMIN')")
     public InventoryRequest approve(
             @PathVariable Long id,
-            @AuthenticationPrincipal User currentUser) {
+            Authentication authentication) {
+        User currentUser = userRepository.findByUsername(authentication.getName())
+                .orElseThrow(() -> new RuntimeException("User not found"));
         return service.approve(id, currentUser);
+    }
+
+    @PutMapping("/{id}/confirm-received")
+    @PreAuthorize("hasRole('MANAGER')")
+    public InventoryRequest confirmReceived(
+            @PathVariable Long id,
+            Authentication authentication) {
+        User currentUser = userRepository.findByUsername(authentication.getName())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        return service.confirmReceived(id, currentUser);
     }
 
     @PutMapping("/{id}/reject")
@@ -42,7 +63,9 @@ public class InventoryRequestController {
     public InventoryRequest reject(
             @PathVariable Long id,
             @RequestBody String note,
-            @AuthenticationPrincipal User currentUser) {
+            Authentication authentication) {
+        User currentUser = userRepository.findByUsername(authentication.getName())
+                .orElseThrow(() -> new RuntimeException("User not found"));
         return service.reject(id, note, currentUser);
     }
 

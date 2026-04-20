@@ -3,6 +3,8 @@ package com.restaurant.doantotnghiep.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.restaurant.doantotnghiep.entity.enums.Role;
 
 @Getter
@@ -12,6 +14,7 @@ import com.restaurant.doantotnghiep.entity.enums.Role;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
+@JsonIgnoreProperties({ "hibernateLazyInitializer", "handler" })
 @Table(name = "users")
 public class User {
 
