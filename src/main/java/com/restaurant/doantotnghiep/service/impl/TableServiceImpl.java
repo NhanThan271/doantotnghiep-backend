@@ -105,4 +105,18 @@ public class TableServiceImpl implements TableService {
         table.setUpdatedAt(LocalDateTime.now());
         return tableRepository.save(table);
     }
+
+    @Override
+    public TableEntity reserveTable(Long id) {
+        TableEntity table = getTableById(id);
+        if (table.getStatus() == Status.OCCUPIED) {
+            throw new RuntimeException("Bàn này đang được sử dụng!");
+        }
+        if (table.getStatus() == Status.RESERVED) {
+            throw new RuntimeException("Bàn này đã được đặt trước rồi!");
+        }
+        table.setStatus(Status.RESERVED);
+        table.setUpdatedAt(LocalDateTime.now());
+        return tableRepository.save(table);
+    }
 }
