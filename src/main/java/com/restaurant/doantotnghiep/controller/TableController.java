@@ -41,6 +41,12 @@ public class TableController {
         return tableService.freeTable(id);
     }
 
+    @PutMapping("/{id}/reserved")
+    @PreAuthorize("hasAnyRole('ADMIN','MANAGER', 'EMPLOYEE', 'CUSTOMER')")
+    public TableEntity reserveTable(@PathVariable Long id) {
+        return tableService.reserveTable(id);
+    }
+
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
     public TableEntity createTable(@RequestBody TableEntity table) {
