@@ -2,6 +2,8 @@ package com.restaurant.doantotnghiep.entity;
 
 import java.time.LocalDate;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -18,12 +20,14 @@ public class StaffShift {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(optional = false, fetch = FetchType.LAZY)
+    @ManyToOne(optional = false, fetch = FetchType.EAGER)
     @JoinColumn(name = "staff_id")
+    @JsonIgnoreProperties({ "hibernateLazyInitializer", "handler", "shifts" })
     private Staff staff;
 
-    @ManyToOne(optional = false, fetch = FetchType.LAZY)
+    @ManyToOne(optional = false, fetch = FetchType.EAGER)
     @JoinColumn(name = "shift_id")
+    @JsonIgnoreProperties({ "hibernateLazyInitializer", "handler", "staffShifts" })
     private Shift shift;
 
     @Column(nullable = false)
