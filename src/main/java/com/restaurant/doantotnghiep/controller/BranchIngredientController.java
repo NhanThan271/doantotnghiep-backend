@@ -26,13 +26,13 @@ public class BranchIngredientController {
     }
 
     @GetMapping("/branch/{branchId}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
     public List<BranchIngredient> getByBranch(@PathVariable Long branchId) {
         return branchIngredientService.getByBranch(branchId);
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
     public BranchIngredient getById(@PathVariable Long id) {
         return branchIngredientService.getById(id);
     }

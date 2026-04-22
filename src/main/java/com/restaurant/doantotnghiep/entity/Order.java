@@ -29,10 +29,15 @@ public class Order {
     @JsonIgnoreProperties({ "orders", "employees", "tables" })
     private Branch branch;
 
-    @ManyToOne(optional = false, fetch = FetchType.EAGER)
+    @ManyToOne(optional = true, fetch = FetchType.EAGER)
     @JoinColumn(name = "table_id")
     @JsonIgnoreProperties({ "hibernateLazyInitializer", "handler" })
     private TableEntity table;
+
+    @ManyToOne(optional = true, fetch = FetchType.EAGER)
+    @JsonIgnoreProperties({ "hibernateLazyInitializer", "handler" })
+    @JoinColumn(name = "room_id")
+    private Room room;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "employee_id")
