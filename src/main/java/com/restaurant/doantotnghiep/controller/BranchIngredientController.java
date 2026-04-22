@@ -20,7 +20,7 @@ public class BranchIngredientController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     public List<BranchIngredient> getAll() {
         return branchIngredientService.getAll();
     }
