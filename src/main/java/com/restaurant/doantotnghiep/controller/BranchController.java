@@ -1,5 +1,6 @@
 package com.restaurant.doantotnghiep.controller;
 
+import com.restaurant.doantotnghiep.dto.BranchNearestResponse;
 import com.restaurant.doantotnghiep.entity.Branch;
 import com.restaurant.doantotnghiep.service.BranchService;
 
@@ -43,5 +44,12 @@ public class BranchController {
     @PreAuthorize("hasRole('ADMIN')")
     public void delete(@PathVariable Long id) {
         branchService.delete(id);
+    }
+
+    @GetMapping("/nearest")
+    public BranchNearestResponse getNearest(
+            @RequestParam double lat,
+            @RequestParam double lng) {
+        return branchService.findNearest(lat, lng);
     }
 }

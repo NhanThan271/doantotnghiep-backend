@@ -154,7 +154,10 @@ public class OrderServiceImpl implements OrderService {
         TableEntity table = tableRepository.findById(order.getTable().getId())
                 .orElseThrow();
 
-        table.setStatus(status);
+        if (table.getType() == TableType.PHYSICAL) {
+            table.setStatus(status);
+            tableRepository.save(table);
+        }
         tableRepository.save(table);
     }
 
@@ -183,8 +186,10 @@ public class OrderServiceImpl implements OrderService {
             TableEntity table = tableRepository.findById(order.getTable().getId())
                     .orElseThrow(() -> new RuntimeException("Table not found"));
 
-            table.setStatus(Status.OCCUPIED);
-            tableRepository.save(table);
+            if (table.getType() == TableType.PHYSICAL) {
+                table.setStatus(Status.OCCUPIED);
+                tableRepository.save(table);
+            }
             order.setTable(table);
         }
 

@@ -64,4 +64,10 @@ public class Branch {
     @OneToMany(mappedBy = "branch")
     @JsonIgnore
     private Set<BranchIngredient> ingredients;
+
+    @Column(nullable = false)
+    private Double latitude;
+
+    @Column(nullable = false)
+    private Double longitude;
 }

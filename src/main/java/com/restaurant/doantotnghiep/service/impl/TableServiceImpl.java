@@ -2,6 +2,7 @@ package com.restaurant.doantotnghiep.service.impl;
 
 import com.restaurant.doantotnghiep.entity.TableEntity;
 import com.restaurant.doantotnghiep.entity.enums.Status;
+import com.restaurant.doantotnghiep.entity.enums.TableType;
 import com.restaurant.doantotnghiep.repository.TableRepository;
 import com.restaurant.doantotnghiep.service.TableService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,22 +30,24 @@ public class TableServiceImpl implements TableService {
 
     @Override
     public TableEntity createTable(TableEntity table) {
-        if (tableRepository.existsByBranchIdAndNumberAndArea(
-                table.getBranch().getId(),
-                table.getNumber(),
-                table.getArea())) {
-            throw new RuntimeException(
-                    String.format("Bàn số %d ở %s đã tồn tại trong chi nhánh này!",
-                            table.getNumber(),
-                            table.getArea()));
+        if (table.getType() == TableType.PHYSICAL) {
+            if (tableRepository.existsByBranchIdAndNumberAndArea(
+                    table.getBranch().getId(),
+                    table.getNumber(),
+                    table.getArea())) {
+                throw new RuntimeException(
+                        String.format("Bàn số %d ở %s đã tồn tại trong chi nhánh này!"));
+            }
         }
-
         if (table.getArea() == null || table.getArea().trim().isEmpty()) {
             throw new RuntimeException("Khu vực/Tầng không được để trống!");
         }
+        if (table.getType() == null) {
+            table.setType(TableType.PHYSICAL);
+        }
         table.setCreatedAt(LocalDateTime.now());
         table.setUpdatedAt(LocalDateTime.now());
-        table.setStatus(Status.FREE); // bàn mới mặc định là trống
+        table.setStatus(Status.FREE);
         return tableRepository.save(table);
     }
 
