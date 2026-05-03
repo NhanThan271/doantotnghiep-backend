@@ -5,10 +5,12 @@ import java.util.List;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
+import com.restaurant.doantotnghiep.entity.BranchFood;
 import com.restaurant.doantotnghiep.entity.OrderItem;
 import com.restaurant.doantotnghiep.entity.enums.KitchenOrderStatus;
 import com.restaurant.doantotnghiep.entity.enums.KitchenStatus;
 import com.restaurant.doantotnghiep.entity.enums.OrderStatus;
+import com.restaurant.doantotnghiep.repository.BranchFoodRepository;
 import com.restaurant.doantotnghiep.repository.KitchenOrderRepository;
 import com.restaurant.doantotnghiep.repository.OrderItemRepository;
 import com.restaurant.doantotnghiep.service.KitchenService;
@@ -23,7 +25,7 @@ public class KitchenServiceImpl implements KitchenService {
 
     private final OrderItemRepository orderItemRepository;
     private final KitchenOrderRepository kitchenOrderRepository;
-
+    private final BranchFoodRepository branchFoodRepository;
     @Lazy
     private final OrderService orderService;
 
@@ -39,6 +41,21 @@ public class KitchenServiceImpl implements KitchenService {
 
         OrderItem item = orderItemRepository.findById(orderItemId)
                 .orElseThrow(() -> new RuntimeException("Order item not found"));
+
+        if (status == KitchenStatus.PREPARING
+                && item.getKitchenStatus() != KitchenStatus.PREPARING) {
+
+            BranchFood bf = branchFoodRepository.findByIdForUpdate(
+            item.getBranchFood().getId());
+
+            if (bf.getStockQuantity() < item.getQuantity()) {
+                throw new RuntimeException(
+                        "Không đủ nguyên liệu cho món: " + bf.getFood().getName());
+            }
+
+            bf.setStockQuantity(bf.getStockQuantity() - item.getQuantity());
+            branchFoodRepository.save(bf);
+        }
 
         item.setKitchenStatus(status);
         orderItemRepository.save(item);

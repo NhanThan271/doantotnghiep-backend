@@ -40,9 +40,6 @@ public class ReservationItemServiceImpl implements ReservationItemService {
                 .price(BigDecimal.valueOf(price))
                 .build();
 
-        branchFood.setStockQuantity(branchFood.getStockQuantity() - quantity);
-        branchFoodRepository.save(branchFood);
-
         return repository.save(item);
     }
 
