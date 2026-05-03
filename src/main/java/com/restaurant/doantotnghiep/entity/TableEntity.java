@@ -1,6 +1,8 @@
 package com.restaurant.doantotnghiep.entity;
 
 import com.restaurant.doantotnghiep.entity.enums.Status;
+import com.restaurant.doantotnghiep.entity.enums.TableType;
+
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
@@ -33,6 +35,10 @@ public class TableEntity {
 
     @Column(nullable = false)
     private String area;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private TableType type;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

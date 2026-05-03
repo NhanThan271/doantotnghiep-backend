@@ -8,4 +8,6 @@ import java.util.List;
 public interface BranchRepository extends JpaRepository<Branch, Long> {
 
     List<Branch> findByIsActiveTrue();
+
+    List<Branch> findByIsActiveTrue();
 }

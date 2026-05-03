@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 @Service
 public class PaymentService {
@@ -27,6 +28,9 @@ public class PaymentService {
 
     @Autowired
     private ReservationRepository reservationRepository;
+
+    @Autowired
+    private EmailService emailService;
 
     public Payment createPayment(Long orderId, Payment payment) {
         Order order = orderRepository.findById(orderId)
@@ -97,8 +101,30 @@ public class PaymentService {
         }
 
         payment.setStatus("SUCCESS");
-
+        Payment savedPayment = paymentRepository.save(payment);
         reservationRepository.save(reservation);
-        return paymentRepository.save(payment);
+
+        if (reservation.getCustomerEmail() != null) {
+
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+
+            String tableInfo = "Không xác định";
+            if (reservation.getTable() != null) {
+                tableInfo = "Bàn " + reservation.getTable().getNumber();
+            } else if (reservation.getRoom() != null) {
+                tableInfo = "Phòng " + reservation.getRoom().getNumber();
+            }
+
+            emailService.sendReservationPaymentEmail(
+                    reservation.getCustomerEmail(),
+                    reservation.getCustomerName(),
+                    reservation.getBranch().getName(),
+                    tableInfo,
+                    reservation.getReservationTime().format(formatter),
+                    "RES" + reservation.getId(),
+                    savedPayment.getTotalAmount().doubleValue());
+        }
+
+        return savedPayment;
     }
 }
