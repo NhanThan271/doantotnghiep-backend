@@ -37,6 +37,8 @@ public class BranchServiceImpl implements BranchService {
         existing.setName(branch.getName());
         existing.setAddress(branch.getAddress());
         existing.setPhone(branch.getPhone());
+        existing.setLatitude(branch.getLatitude());
+        existing.setLongitude(branch.getLongitude());
         existing.setIsActive(branch.getIsActive());
         return branchRepository.save(existing);
     }

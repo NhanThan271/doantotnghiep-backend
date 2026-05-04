@@ -6,13 +6,17 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import com.restaurant.doantotnghiep.entity.BranchFood;
+import com.restaurant.doantotnghiep.entity.BranchIngredient;
 import com.restaurant.doantotnghiep.entity.OrderItem;
+import com.restaurant.doantotnghiep.entity.Recipe;
 import com.restaurant.doantotnghiep.entity.enums.KitchenOrderStatus;
 import com.restaurant.doantotnghiep.entity.enums.KitchenStatus;
 import com.restaurant.doantotnghiep.entity.enums.OrderStatus;
 import com.restaurant.doantotnghiep.repository.BranchFoodRepository;
+import com.restaurant.doantotnghiep.repository.BranchIngredientRepository;
 import com.restaurant.doantotnghiep.repository.KitchenOrderRepository;
 import com.restaurant.doantotnghiep.repository.OrderItemRepository;
+import com.restaurant.doantotnghiep.repository.RecipeRepository;
 import com.restaurant.doantotnghiep.service.KitchenService;
 import com.restaurant.doantotnghiep.service.OrderService;
 
@@ -25,7 +29,8 @@ public class KitchenServiceImpl implements KitchenService {
 
     private final OrderItemRepository orderItemRepository;
     private final KitchenOrderRepository kitchenOrderRepository;
-    private final BranchFoodRepository branchFoodRepository;
+    private final RecipeRepository recipeRepository;
+    private final BranchIngredientRepository branchIngredientRepository;
     @Lazy
     private final OrderService orderService;
 
@@ -45,16 +50,28 @@ public class KitchenServiceImpl implements KitchenService {
         if (status == KitchenStatus.PREPARING
                 && item.getKitchenStatus() != KitchenStatus.PREPARING) {
 
-            BranchFood bf = branchFoodRepository.findByIdForUpdate(
-            item.getBranchFood().getId());
+            Long branchId = item.getOrder().getBranch().getId();
+            Long foodId = item.getFood().getId();
+            int quantity = item.getQuantity();
 
-            if (bf.getStockQuantity() < item.getQuantity()) {
-                throw new RuntimeException(
-                        "Không đủ nguyên liệu cho món: " + bf.getFood().getName());
+            List<Recipe> recipes = recipeRepository.findByFoodId(foodId);
+
+            for (Recipe recipe : recipes) {
+
+                Long ingredientId = recipe.getIngredient().getId();
+                double required = recipe.getQuantityRequired() * quantity;
+
+                BranchIngredient stock = branchIngredientRepository
+                        .findByBranchIdAndIngredientIdForUpdate(branchId, ingredientId);
+
+                if (stock.getQuantity() < required) {
+                    throw new RuntimeException(
+                            "Không đủ nguyên liệu: " + recipe.getIngredient().getName());
+                }
+
+                stock.setQuantity(stock.getQuantity() - required);
+                branchIngredientRepository.save(stock);
             }
-
-            bf.setStockQuantity(bf.getStockQuantity() - item.getQuantity());
-            branchFoodRepository.save(bf);
         }
 
         item.setKitchenStatus(status);
