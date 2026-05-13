@@ -49,6 +49,11 @@ public class UserServiceImpl implements UserService {
     public User createUser(String username, String password, String fullName, String email, String phone, String role,
             Long branchId,
             MultipartFile image) {
+
+        if (email != null && userRepository.existsByEmail(email)) {
+            throw new RuntimeException("Email đã được sử dụng: " + email);
+        }
+
         User user = new User();
         user.setUsername(username);
         user.setPassword(passwordEncoder.encode(password));
