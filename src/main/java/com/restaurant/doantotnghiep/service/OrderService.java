@@ -28,4 +28,6 @@ public interface OrderService {
 
     Order addMultipleFoodsToOrder(Long orderId, List<Map<String, Object>> newItems);
 
+    void addKitchenItemsForNewFood(Long orderId, Long foodId, int quantity);
+
 }

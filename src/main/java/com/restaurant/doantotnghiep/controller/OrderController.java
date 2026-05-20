@@ -132,12 +132,14 @@ public class OrderController {
 
                 Food food = foodService.getFoodById(foodId);
                 existingOrder = orderService.addFoodToOrder(orderId, food, quantity);
+
+                orderService.addKitchenItemsForNewFood(orderId, foodId, quantity);
             }
 
-            // Nếu đơn đã completed, chuyển về preparing
+            // Nếu đơn đã completed, chuyển về CONFIRMED để tiếp tục quy trình
             if (existingOrder.getStatus() == OrderStatus.COMPLETED) {
                 System.out.println("Đơn đã hoàn thành, chuyển về PREPARING");
-                existingOrder = orderService.updateOrderStatus(orderId, OrderStatus.PREPARING);
+                existingOrder = orderService.updateOrderStatus(orderId, OrderStatus.CONFIRMED);
             }
 
             System.out.println("Thêm món thành công! Total: " + existingOrder.getTotalAmount());

@@ -16,4 +16,6 @@ public interface KitchenOrderItemService {
     List<KitchenOrderItem> getByStatus(KitchenStatus status);
 
     KitchenOrderItem getById(Long id);
+
+    List<KitchenOrderItem> getActiveItems();
 }

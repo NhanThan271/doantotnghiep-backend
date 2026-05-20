@@ -13,4 +13,6 @@ public interface KitchenOrderItemRepository extends JpaRepository<KitchenOrderIt
     List<KitchenOrderItem> findByKitchenStatus(KitchenStatus status);
 
     List<KitchenOrderItem> findByKitchenOrderIdAndKitchenStatus(Long kitchenOrderId, KitchenStatus status);
+
+    List<KitchenOrderItem> findByKitchenStatusIn(List<KitchenStatus> statuses);
 }
