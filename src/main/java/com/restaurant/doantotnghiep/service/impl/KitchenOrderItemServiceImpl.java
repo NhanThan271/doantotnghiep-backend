@@ -1,8 +1,10 @@
 package com.restaurant.doantotnghiep.service.impl;
 
+import com.restaurant.doantotnghiep.controller.OrderWebSocketController;
 import com.restaurant.doantotnghiep.entity.*;
 import com.restaurant.doantotnghiep.entity.enums.KitchenOrderStatus;
 import com.restaurant.doantotnghiep.entity.enums.KitchenStatus;
+import com.restaurant.doantotnghiep.entity.enums.OrderStatus;
 import com.restaurant.doantotnghiep.repository.*;
 import com.restaurant.doantotnghiep.service.KitchenOrderItemService;
 
@@ -19,6 +21,8 @@ public class KitchenOrderItemServiceImpl implements KitchenOrderItemService {
     private final KitchenOrderItemRepository repository;
     private final KitchenOrderRepository kitchenOrderRepository;
     private final FoodRepository foodRepository;
+    private final OrderRepository orderRepository;
+    private final OrderWebSocketController orderWebSocketController;
 
     @Override
     public KitchenOrderItem create(Long kitchenOrderId, Long foodId) {
@@ -56,6 +60,17 @@ public class KitchenOrderItemServiceImpl implements KitchenOrderItemService {
                 KitchenOrder ko = item.getKitchenOrder();
                 ko.setKitchenStatus(KitchenOrderStatus.DONE);
                 kitchenOrderRepository.save(ko);
+
+                Order order = ko.getOrder();
+                if (order != null && order.getStatus() != OrderStatus.PAID
+                        && order.getStatus() != OrderStatus.CANCELED) {
+                    order.setStatus(OrderStatus.COMPLETED);
+                    order.setUpdatedAt(java.time.LocalDateTime.now());
+                    orderRepository.save(order);
+
+                    orderWebSocketController.sendOrderUpdate(order);
+
+                }
             }
         }
 
@@ -76,5 +91,29 @@ public class KitchenOrderItemServiceImpl implements KitchenOrderItemService {
     public KitchenOrderItem getById(Long id) {
         return repository.findById(id)
                 .orElseThrow(() -> new RuntimeException("KitchenOrderItem not found"));
+    }
+
+    @Override
+    @Transactional
+    public List<KitchenOrderItem> getActiveItems() {
+        List<KitchenOrderItem> items = repository.findByKitchenStatusIn(
+                List.of(KitchenStatus.WAITING, KitchenStatus.PREPARING));
+        // Force load lazy relationships
+        items.forEach(item -> {
+            if (item.getFood() != null)
+                item.getFood().getName();
+            if (item.getKitchenOrder() != null) {
+                var order = item.getKitchenOrder().getOrder();
+                if (order != null) {
+                    if (order.getTable() != null)
+                        order.getTable().getNumber();
+                    if (order.getBranch() != null)
+                        order.getBranch().getId();
+                    if (order.getItems() != null)
+                        order.getItems().size();
+                }
+            }
+        });
+        return items;
     }
 }

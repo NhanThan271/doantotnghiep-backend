@@ -33,6 +33,7 @@ public class OrderServiceImpl implements OrderService {
     private final BranchIngredientRepository branchIngredientRepository;
     private final KitchenOrderRepository kitchenOrderRepository;
     private final KitchenOrderItemRepository kitchenOrderItemRepository;
+    private final FoodRepository foodRepository;
 
     @Autowired
     public OrderServiceImpl(
@@ -47,7 +48,8 @@ public class OrderServiceImpl implements OrderService {
             RecipeRepository recipeRepository,
             BranchIngredientRepository branchIngredientRepository,
             KitchenOrderRepository kitchenOrderRepository,
-            KitchenOrderItemRepository kitchenOrderItemRepository) {
+            KitchenOrderItemRepository kitchenOrderItemRepository,
+            FoodRepository foodRepository) {
 
         this.orderRepository = orderRepository;
         this.orderWebSocketController = orderWebSocketController;
@@ -61,6 +63,7 @@ public class OrderServiceImpl implements OrderService {
         this.branchIngredientRepository = branchIngredientRepository;
         this.kitchenOrderRepository = kitchenOrderRepository;
         this.kitchenOrderItemRepository = kitchenOrderItemRepository;
+        this.foodRepository = foodRepository;
     }
 
     private BranchFood getBranchFood(Long branchId, Long foodId) {
@@ -382,5 +385,38 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public List<Order> searchOrders(String keyword) {
         return orderRepository.searchOrders(keyword.toLowerCase());
+    }
+
+    @Transactional
+    public void addKitchenItemsForNewFood(Long orderId, Long foodId, int quantity) {
+        List<KitchenOrder> kitchenOrders = kitchenOrderRepository.findByOrderId(orderId);
+
+        KitchenOrder targetKitchenOrder;
+
+        if (kitchenOrders.isEmpty()) {
+            // Chưa có KitchenOrder nào → tạo mới
+            Order order = orderRepository.findById(orderId).orElseThrow();
+            targetKitchenOrder = KitchenOrder.builder()
+                    .order(order)
+                    .kitchenStatus(KitchenOrderStatus.WAITING)
+                    .build();
+            targetKitchenOrder = kitchenOrderRepository.save(targetKitchenOrder);
+        } else {
+            // Lấy KitchenOrder cuối cùng (mới nhất)
+            targetKitchenOrder = kitchenOrders.get(kitchenOrders.size() - 1);
+
+            // ← QUAN TRỌNG: luôn reset về WAITING để bếp thấy
+            targetKitchenOrder.setKitchenStatus(KitchenOrderStatus.WAITING);
+            targetKitchenOrder = kitchenOrderRepository.save(targetKitchenOrder);
+        }
+
+        // Tạo KitchenOrderItem mới
+        Food food = foodRepository.findById(foodId).orElseThrow();
+        KitchenOrderItem kitchenItem = KitchenOrderItem.builder()
+                .kitchenOrder(targetKitchenOrder)
+                .food(food)
+                .kitchenStatus(KitchenStatus.WAITING)
+                .build();
+        kitchenOrderItemRepository.save(kitchenItem);
     }
 }
