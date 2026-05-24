@@ -3,7 +3,6 @@ package com.restaurant.doantotnghiep.service.impl;
 import com.restaurant.doantotnghiep.dto.ReservationResponse;
 import com.restaurant.doantotnghiep.entity.Branch;
 import com.restaurant.doantotnghiep.entity.BranchFood;
-import com.restaurant.doantotnghiep.entity.Food;
 import com.restaurant.doantotnghiep.entity.Reservation;
 import com.restaurant.doantotnghiep.entity.ReservationItem;
 import com.restaurant.doantotnghiep.entity.Room;
@@ -13,12 +12,12 @@ import com.restaurant.doantotnghiep.entity.enums.PaymentStatus;
 import com.restaurant.doantotnghiep.entity.enums.ReservationStatus;
 import com.restaurant.doantotnghiep.repository.BranchFoodRepository;
 import com.restaurant.doantotnghiep.repository.BranchRepository;
-import com.restaurant.doantotnghiep.repository.FoodRepository;
 import com.restaurant.doantotnghiep.repository.ReservationItemRepository;
 import com.restaurant.doantotnghiep.repository.ReservationRepository;
 import com.restaurant.doantotnghiep.repository.RoomRepository;
 import com.restaurant.doantotnghiep.repository.TableRepository;
 import com.restaurant.doantotnghiep.repository.UserRepository;
+import com.restaurant.doantotnghiep.service.EmailService;
 import com.restaurant.doantotnghiep.service.ReservationService;
 
 import jakarta.transaction.Transactional;
@@ -43,6 +42,7 @@ public class ReservationServiceImpl implements ReservationService {
         private final RoomRepository roomRepository;
         private final BranchFoodRepository branchFoodRepository;
         private final ReservationItemRepository reservationItemRepository;
+        private final EmailService emailService;
 
         @Transactional
         public Reservation createFullReservation(Map<String, Object> request) {
