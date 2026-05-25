@@ -24,6 +24,10 @@ public class KitchenOrder {
     @JsonIgnoreProperties({ "items", "payment" })
     private Order order;
 
+    @ManyToOne(optional = true, fetch = FetchType.LAZY)
+    @JoinColumn(name = "reservation_id")
+    private Reservation reservation;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "kitchen_status", nullable = false)
     private KitchenOrderStatus kitchenStatus = KitchenOrderStatus.WAITING;

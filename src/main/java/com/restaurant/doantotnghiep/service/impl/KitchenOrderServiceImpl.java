@@ -1,8 +1,13 @@
 package com.restaurant.doantotnghiep.service.impl;
 
 import com.restaurant.doantotnghiep.entity.KitchenOrder;
+import com.restaurant.doantotnghiep.entity.KitchenOrderItem;
 import com.restaurant.doantotnghiep.entity.Order;
+import com.restaurant.doantotnghiep.entity.Reservation;
+import com.restaurant.doantotnghiep.entity.ReservationItem;
 import com.restaurant.doantotnghiep.entity.enums.KitchenOrderStatus;
+import com.restaurant.doantotnghiep.entity.enums.KitchenStatus;
+import com.restaurant.doantotnghiep.repository.KitchenOrderItemRepository;
 import com.restaurant.doantotnghiep.repository.KitchenOrderRepository;
 import com.restaurant.doantotnghiep.repository.OrderRepository;
 import com.restaurant.doantotnghiep.service.KitchenOrderService;
@@ -16,6 +21,7 @@ import java.util.List;
 public class KitchenOrderServiceImpl implements KitchenOrderService {
 
     private final KitchenOrderRepository kitchenOrderRepository;
+    private final KitchenOrderItemRepository kitchenOrderItemRepository;
     private final OrderRepository orderRepository;
 
     @Override
@@ -42,6 +48,28 @@ public class KitchenOrderServiceImpl implements KitchenOrderService {
         ko.setKitchenStatus(status);
 
         return kitchenOrderRepository.save(ko);
+    }
+
+    @Override
+    public KitchenOrder createFromReservation(Reservation reservation, List<ReservationItem> items) {
+
+        KitchenOrder kitchenOrder = KitchenOrder.builder()
+                .reservation(reservation)
+                .kitchenStatus(KitchenOrderStatus.WAITING)
+                .build();
+
+        KitchenOrder saved = kitchenOrderRepository.save(kitchenOrder);
+
+        for (ReservationItem item : items) {
+            KitchenOrderItem koItem = KitchenOrderItem.builder()
+                    .kitchenOrder(saved)
+                    .food(item.getBranchFood().getFood())
+                    .kitchenStatus(KitchenStatus.PREPARING)
+                    .build();
+            kitchenOrderItemRepository.save(koItem);
+        }
+
+        return saved;
     }
 
     @Override

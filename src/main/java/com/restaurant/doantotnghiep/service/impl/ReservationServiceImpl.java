@@ -17,7 +17,7 @@ import com.restaurant.doantotnghiep.repository.ReservationRepository;
 import com.restaurant.doantotnghiep.repository.RoomRepository;
 import com.restaurant.doantotnghiep.repository.TableRepository;
 import com.restaurant.doantotnghiep.repository.UserRepository;
-import com.restaurant.doantotnghiep.service.EmailService;
+import com.restaurant.doantotnghiep.service.KitchenOrderService;
 import com.restaurant.doantotnghiep.service.ReservationService;
 
 import jakarta.transaction.Transactional;
@@ -42,7 +42,7 @@ public class ReservationServiceImpl implements ReservationService {
         private final RoomRepository roomRepository;
         private final BranchFoodRepository branchFoodRepository;
         private final ReservationItemRepository reservationItemRepository;
-        private final EmailService emailService;
+        private final KitchenOrderService kitchenOrderService;
 
         @Transactional
         public Reservation createFullReservation(Map<String, Object> request) {
@@ -169,12 +169,20 @@ public class ReservationServiceImpl implements ReservationService {
         }
 
         @Override
-        public Reservation updateStatus(Long reservationId, ReservationStatus status) {
-                Reservation reservation = reservationRepository.findById(reservationId)
+        public Reservation updateStatus(Long id, ReservationStatus status) {
+                Reservation reservation = reservationRepository.findById(id)
                                 .orElseThrow(() -> new RuntimeException("Reservation not found"));
 
                 reservation.setStatus(status);
-                reservation.setUpdatedAt(LocalDateTime.now());
+
+                if (status == ReservationStatus.CONFIRMED) {
+                        List<ReservationItem> items = reservationItemRepository
+                                        .findByReservationId(id);
+
+                        if (!items.isEmpty()) {
+                                kitchenOrderService.createFromReservation(reservation, items);
+                        }
+                }
 
                 return reservationRepository.save(reservation);
         }

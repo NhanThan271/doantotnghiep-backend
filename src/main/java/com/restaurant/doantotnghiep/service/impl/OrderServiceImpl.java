@@ -238,26 +238,14 @@ public class OrderServiceImpl implements OrderService {
 
         BranchFood bf = getBranchFood(order.getBranch().getId(), food.getId());
 
-        boolean exists = false;
-        for (OrderItem item : order.getItems()) {
-            if (item.getFood().getId().equals(food.getId())) {
-                item.setQuantity(item.getQuantity() + quantity);
-                item.calculateSubtotal();
-                exists = true;
-                break;
-            }
-        }
-
-        if (!exists) {
-            OrderItem newItem = new OrderItem();
-            newItem.setOrder(order);
-            newItem.setFood(food);
-            newItem.setBranchFood(bf);
-            newItem.setQuantity(quantity);
-            newItem.setPrice(getPriceFromBranchFood(bf));
-            newItem.calculateSubtotal();
-            order.getItems().add(newItem);
-        }
+        OrderItem newItem = new OrderItem();
+        newItem.setOrder(order);
+        newItem.setFood(bf.getFood());
+        newItem.setBranchFood(bf);
+        newItem.setQuantity(quantity);
+        newItem.setPrice(getPriceFromBranchFood(bf));
+        newItem.calculateSubtotal();
+        order.getItems().add(newItem);
 
         order.recalcTotal();
         order.setTotalAmount(applyPromotion(order));
@@ -280,30 +268,16 @@ public class OrderServiceImpl implements OrderService {
 
             BranchFood bf = getBranchFood(branchId, foodId);
 
-            boolean exists = false;
-            for (OrderItem item : order.getItems()) {
-                if (item.getFood().getId().equals(foodId)) {
-                    item.setQuantity(item.getQuantity() + quantity);
-                    item.calculateSubtotal();
-                    exists = true;
-                    break;
-                }
-            }
-
-            if (!exists) {
-                OrderItem newItem = new OrderItem();
-                newItem.setOrder(order);
-                newItem.setFood(bf.getFood());
-                newItem.setBranchFood(bf);
-                newItem.setQuantity(quantity);
-                newItem.setPrice(getPriceFromBranchFood(bf));
-                newItem.calculateSubtotal();
-                order.getItems().add(newItem);
-            }
+            // ← LUÔN tạo mới, không cộng dồn
+            OrderItem newItem = new OrderItem();
+            newItem.setOrder(order);
+            newItem.setFood(bf.getFood());
+            newItem.setBranchFood(bf);
+            newItem.setQuantity(quantity);
+            newItem.setPrice(getPriceFromBranchFood(bf));
+            newItem.calculateSubtotal();
+            order.getItems().add(newItem);
         }
-
-        order.recalcTotal();
-        order.setTotalAmount(applyPromotion(order));
 
         return orderRepository.save(order);
     }
