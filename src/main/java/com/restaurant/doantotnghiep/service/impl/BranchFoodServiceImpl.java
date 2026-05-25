@@ -101,6 +101,7 @@ public class BranchFoodServiceImpl implements BranchFoodService {
                             .hasPromotion(false)
                             .branchFoodId(branchFoodId)
                             .branchId(branchId)
+                            .categoryId(food.getCategory() != null ? food.getCategory().getId() : null)
                             .build();
 
                     // Khuyến mãi (chỉ cho sản phẩm đã phân phối)

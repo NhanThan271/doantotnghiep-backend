@@ -19,6 +19,8 @@ public class FoodWithPromotionDTO {
     private Long id;
     private String name;
     private String description;
+
+    private Long categoryId;
     private String categoryName;
 
     // Giá của chi nhánh (từ BranchFood)
