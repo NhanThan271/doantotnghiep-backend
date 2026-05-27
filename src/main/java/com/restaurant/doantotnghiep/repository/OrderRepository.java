@@ -41,6 +41,7 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
                             LEFT JOIN FETCH o.items i
                             LEFT JOIN FETCH i.food
                             LEFT JOIN FETCH i.branchFood
+                            LEFT JOIN FETCH o.employee
                             WHERE o.id = :id
                         """)
         Optional<Order> findWithItemsById(@Param("id") Long id);
@@ -49,6 +50,7 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
                         "LEFT JOIN FETCH o.branch " +
                         "LEFT JOIN FETCH o.items " +
                         "LEFT JOIN FETCH o.table " +
-                        "LEFT JOIN FETCH o.employee")
+                        "LEFT JOIN FETCH o.employee " +
+                        "ORDER BY o.createdAt DESC")
         List<Order> findAllWithBranch();
 }

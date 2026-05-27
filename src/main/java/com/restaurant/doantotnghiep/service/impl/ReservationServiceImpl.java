@@ -200,8 +200,9 @@ public class ReservationServiceImpl implements ReservationService {
         }
 
         @Override
+        @Transactional
         public Reservation updateStatus(Long id, ReservationStatus status) {
-                Reservation reservation = reservationRepository.findById(id)
+                Reservation reservation = reservationRepository.findByIdWithDetails(id)
                                 .orElseThrow(() -> new RuntimeException("Reservation not found"));
 
                 reservation.setStatus(status);

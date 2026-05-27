@@ -74,4 +74,21 @@ public class WarehouseServiceImpl implements WarehouseService {
             inventoryBatchRepository.save(batch);
         }
     }
+
+    @Override
+    @Transactional
+    public void delete(Long id) {
+        Warehouse warehouse = warehouseRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy kho"));
+
+        List<WarehouseInventory> inventory = warehouseInventoryRepository.findByWarehouseId(id);
+        boolean hasStock = inventory.stream().anyMatch(i -> i.getQuantity() > 0);
+        if (hasStock) {
+            throw new RuntimeException("Không thể xóa kho còn hàng tồn");
+        }
+
+        warehouseInventoryRepository.deleteByWarehouseId(id);
+        inventoryBatchRepository.deleteByWarehouseId(id);
+        warehouseRepository.deleteById(id);
+    }
 }

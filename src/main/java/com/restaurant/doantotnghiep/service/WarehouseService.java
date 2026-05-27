@@ -10,4 +10,6 @@ public interface WarehouseService {
     Warehouse create(Warehouse warehouse);
 
     List<Warehouse> getAll();
+
+    void delete(Long id);
 }
