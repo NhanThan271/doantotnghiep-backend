@@ -9,6 +9,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 public interface ReservationRepository extends JpaRepository<Reservation, Long> {
 
@@ -56,4 +57,14 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
             @Param("branchId") Long branchId,
             @Param("checkIn") LocalDateTime checkIn,
             @Param("checkOut") LocalDateTime checkOut);
+
+    @Query("""
+                SELECT r FROM Reservation r
+                LEFT JOIN FETCH r.user
+                LEFT JOIN FETCH r.branch
+                LEFT JOIN FETCH r.table
+                LEFT JOIN FETCH r.room
+                WHERE r.id = :id
+            """)
+    Optional<Reservation> findByIdWithDetails(@Param("id") Long id);
 }

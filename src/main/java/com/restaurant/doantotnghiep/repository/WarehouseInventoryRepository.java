@@ -11,4 +11,6 @@ public interface WarehouseInventoryRepository
     Optional<WarehouseInventory> findByWarehouseIdAndIngredientId(Long warehouseId, Long ingredientId);
 
     List<WarehouseInventory> findByWarehouseId(Long warehouseId);
+
+    void deleteByWarehouseId(Long warehouseId);
 }
