@@ -2,7 +2,7 @@ package com.restaurant.doantotnghiep.entity;
 
 import java.time.LocalDateTime;
 
-import com.restaurant.doantotnghiep.entity.enums.Status;
+import com.restaurant.doantotnghiep.entity.enums.RoomStatus;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -37,7 +37,7 @@ public class Room {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private Status status = Status.FREE;
+    private RoomStatus status = RoomStatus.ACTIVE;
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

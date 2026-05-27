@@ -31,6 +31,12 @@ public class Bill {
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal totalAmount;
 
+    @Column(nullable = false, precision = 10, scale = 2)
+    private BigDecimal paidOnlineAmount = BigDecimal.ZERO;
+
+    @Column(nullable = false, precision = 10, scale = 2)
+    private BigDecimal finalAmount;
+
     @Enumerated(EnumType.STRING)
     private PaymentMethod paymentMethod;
 

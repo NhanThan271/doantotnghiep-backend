@@ -29,7 +29,7 @@ public class ReservationScheduler {
         LocalDateTime threshold = now.plusHours(1); // sắp đến trong 1 tiếng
 
         List<Reservation> pendingList = reservationRepository
-            .findByStatusAndReservationTimeBefore(ReservationStatus.PENDING, threshold);
+                .findByStatusAndCheckInTimeBefore(ReservationStatus.PENDING, threshold);
 
         for (Reservation r : pendingList) {
             reservationService.updateStatus(r.getId(), ReservationStatus.CONFIRMED);

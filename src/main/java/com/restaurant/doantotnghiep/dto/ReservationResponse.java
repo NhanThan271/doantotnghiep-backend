@@ -19,5 +19,6 @@ public class ReservationResponse {
     private Integer roomNumber;
     private Double remainingAmount;
     private String status;
-    private LocalDateTime reservationTime;
+    private LocalDateTime checkInTime;
+    private LocalDateTime checkOutTime;
 }

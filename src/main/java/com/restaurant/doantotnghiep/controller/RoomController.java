@@ -1,13 +1,15 @@
 package com.restaurant.doantotnghiep.controller;
 
 import com.restaurant.doantotnghiep.entity.Room;
-import com.restaurant.doantotnghiep.entity.enums.Status;
+import com.restaurant.doantotnghiep.entity.enums.RoomStatus;
 import com.restaurant.doantotnghiep.service.RoomService;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @RestController
@@ -41,7 +43,7 @@ public class RoomController {
     @PreAuthorize("hasAnyRole('ADMIN','EMPLOYEE','MANAGER')")
     public Room updateStatus(
             @PathVariable Long id,
-            @RequestParam Status status) {
+            @RequestParam RoomStatus status) {
         return service.updateStatus(id, status);
     }
 
@@ -57,14 +59,20 @@ public class RoomController {
     }
 
     @GetMapping("/status")
-    public List<Room> getByStatus(@RequestParam Status status) {
+    public List<Room> getByStatus(@RequestParam RoomStatus status) {
         return service.getByStatus(status);
     }
 
-    @GetMapping("/available/{branchId}")
-    @PreAuthorize("hasAnyRole('ADMIN','EMPLOYEE','MANAGER')")
-    public List<Room> getAvailable(@PathVariable Long branchId) {
-        return service.getAvailableRooms(branchId);
+    @GetMapping("/branch/{branchId}/available")
+    public List<Room> getAvailableRooms(
+            @PathVariable Long branchId,
+            @RequestParam String checkIn,
+            @RequestParam String checkOut) {
+        DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+        return service.getAvailableRooms(
+                branchId,
+                LocalDateTime.parse(checkIn, fmt),
+                LocalDateTime.parse(checkOut, fmt));
     }
 
     @GetMapping("/{id}")

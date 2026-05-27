@@ -433,8 +433,15 @@
                     </svg>
                 </div>
                 <div>
-                    <div class="details-label">Thời gian đặt bàn</div>
-                    <div class="details-value" th:text="${time}"></div>
+                    <div class="details-label">Thời gian đặt:</div>
+                    <div class="details-value">
+                        Nhận phòng:
+                        <strong th:text="${checkIn}"></strong>
+                        <br />
+
+                        Trả phòng:
+                        <strong th:text="${checkOut}"></strong>
+                    </div>
                 </div>
             </div>
 
@@ -466,6 +473,22 @@
                     <div class="details-label">Số tiền đã thanh toán</div>
                     <div class="details-value amount">
                         <span th:text="${#numbers.formatDecimal(amount, 0, 'COMMA', 0, 'POINT')}"></span> ₫
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="details-card" th:if="${items != null and !#lists.isEmpty(items)}" style="margin-top: 16px;">
+            <div class="details-card-header">
+                <span>Món ăn đã đặt trước</span>
+            </div>
+            <div th:each="item : ${items}" class="details-row">
+                <div>
+                    <div class="details-label" th:text="${item.branchFood.food.name}"></div>
+                    <div class="details-value">
+                        x<span th:text="${item.quantity}"></span>
+                        —
+                        <span th:text="${#numbers.formatDecimal(item.price, 0, 'COMMA', 0, 'POINT')}"></span> ₫
                     </div>
                 </div>
             </div>

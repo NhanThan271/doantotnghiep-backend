@@ -28,7 +28,7 @@ public class OrderItem {
     @JsonIgnoreProperties({ "items", "payment" })
     private Order order;
 
-    @ManyToOne(optional = false, fetch = FetchType.EAGER)
+    @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "food_id")
     @JsonIgnoreProperties({ "hibernateLazyInitializer", "handler" })
     private Food food;

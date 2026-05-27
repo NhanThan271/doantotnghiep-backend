@@ -1,8 +1,11 @@
 package com.restaurant.doantotnghiep.repository;
 
 import com.restaurant.doantotnghiep.entity.Reservation;
+import com.restaurant.doantotnghiep.entity.Room;
 import com.restaurant.doantotnghiep.entity.enums.ReservationStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -13,12 +16,44 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
 
     List<Reservation> findByBranchId(Long branchId);
 
-    List<Reservation> findByReservationTimeBetweenAndStatus(
+    List<Reservation> findByCheckInTimeBetweenAndStatus(
             LocalDateTime from,
             LocalDateTime to,
             ReservationStatus status);
 
-    List<Reservation> findByStatusAndReservationTimeBefore(
+    List<Reservation> findByStatusAndCheckInTimeBefore(
             ReservationStatus status,
             LocalDateTime time);
+
+    @Query("""
+                SELECT COUNT(r) > 0
+                FROM Reservation r
+                WHERE r.room.id = :roomId
+                  AND r.status <> 'CANCELLED'
+                  AND (:checkIn < r.checkOutTime AND :checkOut > r.checkInTime)
+            """)
+    boolean existsRoomBookingConflict(
+            @Param("roomId") Long roomId,
+            @Param("checkIn") LocalDateTime checkIn,
+            @Param("checkOut") LocalDateTime checkOut);
+
+    @Query("""
+                SELECT r
+                FROM Room r
+                WHERE r.branch.id = :branchId
+                AND r.status = 'ACTIVE'
+                AND r.id NOT IN (
+                    SELECT res.room.id
+                    FROM Reservation res
+                    WHERE res.status <> 'CANCELLED'
+                    AND (
+                        :checkIn < res.checkOutTime
+                        AND :checkOut > res.checkInTime
+                    )
+                )
+            """)
+    List<Room> findAvailableRooms(
+            @Param("branchId") Long branchId,
+            @Param("checkIn") LocalDateTime checkIn,
+            @Param("checkOut") LocalDateTime checkOut);
 }

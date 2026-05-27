@@ -44,8 +44,16 @@ public class Order {
     @JsonIgnoreProperties({ "orders", "password", "roles" })
     private User employee;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "reservation_id")
+    @JsonIgnoreProperties({
+            "hibernateLazyInitializer",
+            "handler"
+    })
+    private Reservation reservation;
+
     @Column(length = 100)
-    private String customerName; // Thêm field này nếu chưa có
+    private String customerName;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)

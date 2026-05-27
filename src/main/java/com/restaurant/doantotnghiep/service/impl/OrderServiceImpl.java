@@ -34,6 +34,8 @@ public class OrderServiceImpl implements OrderService {
     private final KitchenOrderRepository kitchenOrderRepository;
     private final KitchenOrderItemRepository kitchenOrderItemRepository;
     private final FoodRepository foodRepository;
+    private final ReservationRepository reservationRepository;
+    private final ReservationItemRepository reservationItemRepository;
 
     @Autowired
     public OrderServiceImpl(
@@ -49,7 +51,9 @@ public class OrderServiceImpl implements OrderService {
             BranchIngredientRepository branchIngredientRepository,
             KitchenOrderRepository kitchenOrderRepository,
             KitchenOrderItemRepository kitchenOrderItemRepository,
-            FoodRepository foodRepository) {
+            FoodRepository foodRepository,
+            ReservationRepository reservationRepository,
+            ReservationItemRepository reservationItemRepository) {
 
         this.orderRepository = orderRepository;
         this.orderWebSocketController = orderWebSocketController;
@@ -64,6 +68,8 @@ public class OrderServiceImpl implements OrderService {
         this.kitchenOrderRepository = kitchenOrderRepository;
         this.kitchenOrderItemRepository = kitchenOrderItemRepository;
         this.foodRepository = foodRepository;
+        this.reservationRepository = reservationRepository;
+        this.reservationItemRepository = reservationItemRepository;
     }
 
     private BranchFood getBranchFood(Long branchId, Long foodId) {
@@ -392,5 +398,60 @@ public class OrderServiceImpl implements OrderService {
                 .kitchenStatus(KitchenStatus.WAITING)
                 .build();
         kitchenOrderItemRepository.save(kitchenItem);
+    }
+
+    @Override
+    @Transactional
+    public Order createOrderFromReservation(Long reservationId) {
+
+        Reservation reservation = reservationRepository.findById(reservationId)
+                .orElseThrow(() -> new RuntimeException("Reservation not found"));
+
+        Order order = new Order();
+
+        order.setReservation(reservation);
+
+        order.setBranch(reservation.getBranch());
+
+        order.setTable(reservation.getTable());
+
+        order.setRoom(reservation.getRoom());
+
+        order.setCustomerName(reservation.getCustomerName());
+
+        order.setStatus(OrderStatus.CONFIRMED);
+
+        List<OrderItem> orderItems = new ArrayList<>();
+
+        List<ReservationItem> reservationItems = reservationItemRepository.findByReservationId(reservationId);
+
+        for (ReservationItem ri : reservationItems) {
+
+            OrderItem oi = new OrderItem();
+
+            oi.setOrder(order);
+
+            oi.setBranchFood(ri.getBranchFood());
+
+            oi.setQuantity(ri.getQuantity());
+
+            oi.setPrice(ri.getPrice());
+
+            oi.calculateSubtotal();
+
+            orderItems.add(oi);
+        }
+
+        order.setItems(orderItems);
+
+        order.recalcTotal();
+
+        Order savedOrder = orderRepository.save(order);
+
+        reservation.setStatus(ReservationStatus.CONFIRMED);
+
+        reservationRepository.save(reservation);
+
+        return savedOrder;
     }
 }
