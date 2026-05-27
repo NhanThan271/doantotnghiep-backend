@@ -3,11 +3,13 @@ package com.restaurant.doantotnghiep.service;
 import com.restaurant.doantotnghiep.entity.Order;
 import com.restaurant.doantotnghiep.entity.Payment;
 import com.restaurant.doantotnghiep.entity.Reservation;
+import com.restaurant.doantotnghiep.entity.ReservationItem;
 import com.restaurant.doantotnghiep.entity.enums.OrderStatus;
 import com.restaurant.doantotnghiep.entity.enums.PaymentStatus;
 import com.restaurant.doantotnghiep.entity.enums.PaymentType;
 import com.restaurant.doantotnghiep.repository.OrderRepository;
 import com.restaurant.doantotnghiep.repository.PaymentRepository;
+import com.restaurant.doantotnghiep.repository.ReservationItemRepository;
 import com.restaurant.doantotnghiep.repository.ReservationRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +18,7 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 
 @Service
 public class PaymentService {
@@ -31,6 +34,9 @@ public class PaymentService {
 
     @Autowired
     private EmailService emailService;
+
+    @Autowired
+    private ReservationItemRepository reservationItemRepository;
 
     public Payment createPayment(Long orderId, Payment payment) {
         Order order = orderRepository.findById(orderId)
@@ -114,15 +120,19 @@ public class PaymentService {
             } else if (reservation.getRoom() != null) {
                 tableInfo = "Phòng " + reservation.getRoom().getNumber();
             }
-
+            
+            List<ReservationItem> items = reservationItemRepository
+                    .findByReservationId(reservation.getId());
             emailService.sendReservationPaymentEmail(
                     reservation.getCustomerEmail(),
                     reservation.getCustomerName(),
                     reservation.getBranch().getName(),
                     tableInfo,
-                    reservation.getReservationTime().format(formatter),
+                    reservation.getCheckInTime().format(formatter),
+                    reservation.getCheckOutTime().format(formatter),
                     "RES" + reservation.getId(),
-                    savedPayment.getTotalAmount().doubleValue());
+                    reservation.getDepositAmount(),
+                    items);
         }
 
         return savedPayment;

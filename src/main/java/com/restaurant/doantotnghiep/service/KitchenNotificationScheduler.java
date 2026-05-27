@@ -26,14 +26,14 @@ public class KitchenNotificationScheduler {
     private final ReservationItemRepository reservationItemRepository;
     private final RestTemplate restTemplate;
 
-    @Scheduled(fixedRate = 60000) 
+    @Scheduled(fixedRate = 5000)
     public void notifyKitchen() {
 
-        LocalDateTime from = LocalDateTime.now().plusMinutes(40);
-        LocalDateTime to   = LocalDateTime.now().plusMinutes(41);
+        LocalDateTime from = LocalDateTime.now().plusSeconds(20);
+        LocalDateTime to = LocalDateTime.now().plusSeconds(25);
 
         List<Reservation> upcoming = reservationRepository
-                .findByReservationTimeBetweenAndStatus(from, to, ReservationStatus.CONFIRMED);
+                .findByCheckInTimeBetweenAndStatus(from, to, ReservationStatus.CONFIRMED);
 
         for (Reservation r : upcoming) {
 
@@ -43,23 +43,25 @@ public class KitchenNotificationScheduler {
             List<Map<String, Object>> foodList = items.stream()
                     .map(item -> Map.<String, Object>of(
                             "foodName", item.getBranchFood().getFood().getName(),
-                            "quantity", item.getQuantity()
-                    ))
+                            "quantity", item.getQuantity()))
                     .collect(Collectors.toList());
 
             Map<String, Object> payload = new HashMap<>();
             payload.put("reservationId", "RES-" + r.getId());
-            payload.put("customerName",  r.getCustomerName());
-            payload.put("branch",        r.getBranch().getName());
-            payload.put("table",         r.getTable() != null
-                                            ? "Bàn " + r.getTable().getNumber()
-                                            : r.getRoom() != null
-                                                ? "Phòng " + r.getRoom().getNumber()
-                                                : "Chưa xác định");
-            payload.put("time",          r.getReservationTime()
-                                            .format(DateTimeFormatter.ofPattern("HH:mm dd/MM/yyyy")));
-            payload.put("foods",         foodList);
-            payload.put("message",       " Khách sẽ đến sau 40 phút, chuẩn bị món!");
+            payload.put("customerName", r.getCustomerName());
+            payload.put("branch", r.getBranch().getName());
+            payload.put("table", r.getTable() != null
+                    ? "Bàn " + r.getTable().getNumber()
+                    : r.getRoom() != null
+                            ? "Phòng " + r.getRoom().getNumber()
+                            : "Chưa xác định");
+            payload.put("checkInTime", r.getCheckInTime()
+                    .format(DateTimeFormatter.ofPattern("HH:mm dd/MM/yyyy")));
+
+            payload.put("checkOutTime", r.getCheckOutTime()
+                    .format(DateTimeFormatter.ofPattern("HH:mm dd/MM/yyyy")));
+            payload.put("foods", foodList);
+            payload.put("message", " Khách sẽ đến sau 40 phút, chuẩn bị món!");
 
             try {
                 HttpHeaders headers = new HttpHeaders();
@@ -67,10 +69,9 @@ public class KitchenNotificationScheduler {
                 HttpEntity<Map<String, Object>> entity = new HttpEntity<>(payload, headers);
 
                 restTemplate.postForEntity(
-                    "http://localhost:3001/notify-kitchen-reservation",
-                    entity,
-                    Map.class
-                );
+                        "http://localhost:3001/notify-kitchen-reservation",
+                        entity,
+                        Map.class);
 
                 log.info("Notified kitchen for RES-{}", r.getId());
 

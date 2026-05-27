@@ -1,12 +1,13 @@
 package com.restaurant.doantotnghiep.service.impl;
 
 import com.restaurant.doantotnghiep.entity.*;
-import com.restaurant.doantotnghiep.entity.enums.Status;
+import com.restaurant.doantotnghiep.entity.enums.RoomStatus;
 import com.restaurant.doantotnghiep.repository.*;
 import com.restaurant.doantotnghiep.service.RoomService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -15,6 +16,7 @@ public class RoomServiceImpl implements RoomService {
 
     private final RoomRepository roomRepository;
     private final BranchRepository branchRepository;
+    private final ReservationRepository reservationRepository;
 
     @Override
     public Room create(Long branchId, Integer number, Integer capacity, String area) {
@@ -33,7 +35,7 @@ public class RoomServiceImpl implements RoomService {
                 .number(number)
                 .capacity(capacity)
                 .area(area)
-                .status(Status.FREE)
+                .status(RoomStatus.ACTIVE)
                 .build();
 
         return roomRepository.save(room);
@@ -51,7 +53,7 @@ public class RoomServiceImpl implements RoomService {
     }
 
     @Override
-    public Room updateStatus(Long id, Status status) {
+    public Room updateStatus(Long id, RoomStatus status) {
         Room room = roomRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Room not found"));
 
@@ -80,12 +82,19 @@ public class RoomServiceImpl implements RoomService {
     }
 
     @Override
-    public List<Room> getByStatus(Status status) {
+    public List<Room> getByStatus(RoomStatus status) {
         return roomRepository.findByStatus(status);
     }
 
     @Override
-    public List<Room> getAvailableRooms(Long branchId) {
-        return roomRepository.findByBranchIdAndStatus(branchId, Status.FREE);
+    public List<Room> getAvailableRooms(
+            Long branchId,
+            LocalDateTime checkIn,
+            LocalDateTime checkOut) {
+
+        return reservationRepository.findAvailableRooms(
+                branchId,
+                checkIn,
+                checkOut);
     }
 }

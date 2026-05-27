@@ -50,6 +50,7 @@ public class ReservationServiceImpl implements ReservationService {
                 Long userId = request.get("userId") != null
                                 ? Long.valueOf(request.get("userId").toString())
                                 : null;
+
                 String customerName = request.get("customerName") != null
                                 ? request.get("customerName").toString()
                                 : null;
@@ -61,6 +62,7 @@ public class ReservationServiceImpl implements ReservationService {
                 String customerEmail = request.get("customerEmail") != null
                                 ? request.get("customerEmail").toString()
                                 : null;
+
                 Long branchId = Long.valueOf(request.get("branchId").toString());
 
                 Long tableId = request.get("tableId") != null
@@ -71,12 +73,23 @@ public class ReservationServiceImpl implements ReservationService {
                                 ? Long.valueOf(request.get("roomId").toString())
                                 : null;
 
-                String reservationTime = request.get("reservationTime").toString();
-                Double depositAmount = Double.valueOf(request.get("depositAmount").toString());
+                Double depositAmount = Double.valueOf(
+                                request.get("depositAmount").toString());
 
                 List<Map<String, Object>> items = (List<Map<String, Object>>) request.get("items");
 
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+
+                LocalDateTime checkInTime = LocalDateTime.parse(
+                                request.get("checkInTime").toString(),
+                                formatter);
+
+                LocalDateTime checkOutTime = LocalDateTime.parse(
+                                request.get("checkOutTime").toString(),
+                                formatter);
+
                 User user = null;
+
                 if (userId != null) {
                         user = userRepository.findById(userId)
                                         .orElseThrow(() -> new RuntimeException("User not found"));
@@ -90,10 +103,23 @@ public class ReservationServiceImpl implements ReservationService {
                                 : null;
 
                 Room room = (roomId != null)
-                                ? roomRepository.findById(roomId).orElse(null)
+                                ? roomRepository.findById(roomId)
+                                                .orElseThrow(() -> new RuntimeException("Room not found"))
                                 : null;
-                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
-                LocalDateTime time = LocalDateTime.parse(reservationTime, formatter);
+
+                if (room != null) {
+
+                        boolean conflict = reservationRepository.existsRoomBookingConflict(
+                                        roomId,
+                                        checkInTime,
+                                        checkOutTime);
+
+                        if (conflict) {
+                                throw new RuntimeException(
+                                                "Phòng đã được đặt trong thời gian này");
+                        }
+                }
+
                 Reservation reservation = Reservation.builder()
                                 .user(user)
                                 .customerName(customerName)
@@ -102,7 +128,8 @@ public class ReservationServiceImpl implements ReservationService {
                                 .branch(branch)
                                 .table(table)
                                 .room(room)
-                                .reservationTime(time)
+                                .checkInTime(checkInTime)
+                                .checkOutTime(checkOutTime)
                                 .depositAmount(depositAmount)
                                 .totalPrice(0.0)
                                 .status(ReservationStatus.PENDING)
@@ -115,26 +142,29 @@ public class ReservationServiceImpl implements ReservationService {
                 double total = 0;
 
                 for (Map<String, Object> item : items) {
+
                         Long branchFoodId = Long.valueOf(item.get("branchFoodId").toString());
+
                         Integer quantity = Integer.valueOf(item.get("quantity").toString());
 
                         BranchFood branchFood = branchFoodRepository.findById(branchFoodId)
                                         .orElseThrow(() -> new RuntimeException("BranchFood not found"));
 
+                        BigDecimal price = BigDecimal.valueOf(
+                                        branchFood.getCustomPrice() != null
+                                                        ? branchFood.getCustomPrice()
+                                                        : branchFood.getFood().getPrice().doubleValue());
+
                         ReservationItem reservationItem = ReservationItem.builder()
                                         .reservation(reservation)
                                         .branchFood(branchFood)
                                         .quantity(quantity)
-                                        .price(BigDecimal.valueOf(
-                                                        branchFood.getCustomPrice() != null
-                                                                        ? branchFood.getCustomPrice()
-                                                                        : branchFood.getFood().getPrice()
-                                                                                        .doubleValue()))
+                                        .price(price)
                                         .build();
 
                         reservationItemRepository.save(reservationItem);
 
-                        total += reservationItem.getPrice().doubleValue() * quantity;
+                        total += price.doubleValue() * quantity;
                 }
 
                 reservation.setTotalPrice(total);
@@ -162,7 +192,8 @@ public class ReservationServiceImpl implements ReservationService {
                                                                                 ? r.getRoom().getNumber()
                                                                                 : (Integer) null)
                                                 .status(r.getStatus().name())
-                                                .reservationTime(r.getReservationTime())
+                                                .checkInTime(r.getCheckInTime())
+                                                .checkOutTime(r.getCheckOutTime())
                                                 .remainingAmount(r.getTotalPrice() - r.getDepositAmount())
                                                 .build())
                                 .collect(Collectors.toList());

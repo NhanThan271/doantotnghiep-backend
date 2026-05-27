@@ -3,6 +3,7 @@ package com.restaurant.doantotnghiep.controller;
 import com.restaurant.doantotnghiep.dto.OrderStatusDTO;
 import com.restaurant.doantotnghiep.entity.Bill;
 import com.restaurant.doantotnghiep.entity.Order;
+import com.restaurant.doantotnghiep.entity.Reservation;
 import com.restaurant.doantotnghiep.entity.Food;
 import com.restaurant.doantotnghiep.entity.TableEntity;
 import com.restaurant.doantotnghiep.entity.enums.OrderStatus;
@@ -22,6 +23,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
@@ -321,6 +323,9 @@ public class OrderController {
 
             System.out.println("Order found: #" + order.getId() + " - Status: " + order.getStatus());
 
+            // Lấy reservation
+            Reservation reservation = order.getReservation();
+
             // KIỂM TRA TRẠNG THÁI
             if (order.getStatus() == OrderStatus.PAID) {
                 return ResponseEntity.badRequest()
@@ -332,6 +337,16 @@ public class OrderController {
                         .body(Map.of("error", "Không thể thanh toán đơn đã hủy!"));
             }
 
+            BigDecimal total = order.getTotalAmount();
+
+            BigDecimal paidOnline = BigDecimal.ZERO;
+
+            if (reservation != null && reservation.getDepositAmount() != null) {
+                paidOnline = BigDecimal.valueOf(reservation.getDepositAmount());
+            }
+
+            BigDecimal finalAmount = total.subtract(paidOnline);
+
             // CẬP NHẬT TRẠNG THÁI
             LocalDateTime now = LocalDateTime.now();
             order.setStatus(OrderStatus.PAID);
@@ -339,19 +354,38 @@ public class OrderController {
             order.setUpdatedAt(now);
 
             // TẠO BILL NẾU CHƯA CÓ
+
+            if (finalAmount.compareTo(BigDecimal.ZERO) < 0) {
+                finalAmount = BigDecimal.ZERO;
+            }
+
             if (!billRepository.existsByOrderId(order.getId())) {
+
                 Bill bill = Bill.builder()
                         .order(order)
-                        .totalAmount(order.getTotalAmount())
+
+                        .totalAmount(total)
+
+                        .paidOnlineAmount(paidOnline)
+
+                        .finalAmount(finalAmount)
+
                         .paymentMethod(method)
+
                         .paymentStatus(PaymentStatus.PAID)
+
                         .issuedAt(now)
+
                         .notes("Thanh toán qua " + method.name())
+
                         .createdAt(now)
+
                         .updatedAt(now)
+
                         .build();
 
                 billRepository.save(bill);
+
                 System.out.println("Bill created for order #" + id);
             }
 
@@ -426,6 +460,16 @@ public class OrderController {
                 .stream()
                 .filter(o -> o.getStatus() == OrderStatus.PENDING)
                 .collect(Collectors.toList());
+    }
+
+    @PostMapping("/from-reservation/{reservationId}")
+    @PreAuthorize("hasAnyRole('ADMIN','EMPLOYEE','MANAGER')")
+    public ResponseEntity<?> createOrderFromReservation(
+            @PathVariable Long reservationId) {
+
+        Order order = orderService.createOrderFromReservation(reservationId);
+
+        return ResponseEntity.ok(order);
     }
 
 }

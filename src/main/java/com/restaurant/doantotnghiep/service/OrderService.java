@@ -30,4 +30,6 @@ public interface OrderService {
 
     void addKitchenItemsForNewFood(Long orderId, Long foodId, int quantity);
 
+    Order createOrderFromReservation(Long reservationId);
+
 }

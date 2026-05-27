@@ -2,12 +2,17 @@ package com.restaurant.doantotnghiep.service;
 
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
+
+import java.util.List;
+
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import org.springframework.scheduling.annotation.Async;
 import org.thymeleaf.context.Context;
 import org.thymeleaf.spring6.SpringTemplateEngine;
+
+import com.restaurant.doantotnghiep.entity.ReservationItem;
 
 @Service
 @RequiredArgsConstructor
@@ -22,17 +27,21 @@ public class EmailService {
             String name,
             String branch,
             String table,
-            String time,
+            String checkIn,
+            String checkOut,
             String code,
-            double amount) {
+            double amount,
+            List<ReservationItem> items) {
         try {
             Context context = new Context();
             context.setVariable("name", name);
             context.setVariable("branch", branch);
             context.setVariable("table", table);
-            context.setVariable("time", time);
+            context.setVariable("checkIn", checkIn);
+            context.setVariable("checkOut", checkOut);
             context.setVariable("code", code);
             context.setVariable("amount", amount);
+            context.setVariable("items", items);
 
             String html = templateEngine.process("email/reservation", context);
 
@@ -46,7 +55,7 @@ public class EmailService {
             mailSender.send(message);
 
         } catch (Exception e) {
-            e.printStackTrace(); 
+            e.printStackTrace();
         }
     }
 }

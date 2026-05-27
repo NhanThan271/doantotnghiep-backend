@@ -1,8 +1,9 @@
 package com.restaurant.doantotnghiep.service;
 
 import com.restaurant.doantotnghiep.entity.Room;
-import com.restaurant.doantotnghiep.entity.enums.Status;
+import com.restaurant.doantotnghiep.entity.enums.RoomStatus;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 public interface RoomService {
@@ -11,7 +12,7 @@ public interface RoomService {
 
     Room update(Long id, Integer capacity, String area);
 
-    Room updateStatus(Long id, Status status);
+    Room updateStatus(Long id, RoomStatus status);
 
     void delete(Long id);
 
@@ -19,7 +20,7 @@ public interface RoomService {
 
     List<Room> getByBranch(Long branchId);
 
-    List<Room> getByStatus(Status status);
+    List<Room> getByStatus(RoomStatus status);
 
-    List<Room> getAvailableRooms(Long branchId);
+    List<Room> getAvailableRooms(Long branchId, LocalDateTime checkIn, LocalDateTime checkOut);
 }
