@@ -60,7 +60,7 @@ public class RecipeController {
     }
 
     @GetMapping("/food/{foodId}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
     public List<Recipe> getByFood(@PathVariable Long foodId) {
         return recipeService.getByFood(foodId);
     }

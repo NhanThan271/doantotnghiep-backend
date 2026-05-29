@@ -1,6 +1,7 @@
 package com.restaurant.doantotnghiep.service;
 
 import com.restaurant.doantotnghiep.entity.OrderItem;
+import com.restaurant.doantotnghiep.entity.enums.KitchenStatus;
 
 import java.util.List;
 
@@ -14,4 +15,6 @@ public interface OrderItemService {
     OrderItem updateItem(Long id, OrderItem item);
 
     void deleteItem(Long id);
+
+    List<OrderItem> getItemsByKitchenStatus(KitchenStatus status);
 }
