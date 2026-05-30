@@ -19,4 +19,6 @@ public interface IngredientService {
     List<Ingredient> getAllActive();
 
     List<Ingredient> search(String keyword);
+
+    Ingredient updateStatus(Long id, Boolean isActive);
 }

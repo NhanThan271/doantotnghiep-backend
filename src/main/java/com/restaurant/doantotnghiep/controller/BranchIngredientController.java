@@ -47,7 +47,7 @@ public class BranchIngredientController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
     public BranchIngredient updateQuantity(
             @PathVariable Long id,
             @RequestParam Double quantity) {

@@ -1,6 +1,7 @@
 package com.restaurant.doantotnghiep.controller;
 
 import com.restaurant.doantotnghiep.entity.OrderItem;
+import com.restaurant.doantotnghiep.entity.enums.KitchenStatus;
 import com.restaurant.doantotnghiep.service.OrderItemService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -48,5 +49,16 @@ public class OrderItemController {
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     public void deleteItem(@PathVariable Long id) {
         orderItemService.deleteItem(id);
+    }
+
+    @GetMapping("/status")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
+    public List<OrderItem> getByStatus(@RequestParam String status) {
+        try {
+            KitchenStatus kitchenStatus = KitchenStatus.valueOf(status.toUpperCase());
+            return orderItemService.getItemsByKitchenStatus(kitchenStatus);
+        } catch (IllegalArgumentException e) {
+            throw new RuntimeException("Invalid status: " + status);
+        }
     }
 }
