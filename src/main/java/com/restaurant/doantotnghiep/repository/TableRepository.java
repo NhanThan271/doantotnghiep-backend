@@ -2,6 +2,7 @@ package com.restaurant.doantotnghiep.repository;
 
 import com.restaurant.doantotnghiep.entity.TableEntity;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -34,4 +35,25 @@ public interface TableRepository extends JpaRepository<TableEntity, Long> {
     // Lấy danh sách area DISTINCT theo branch
     @Query("SELECT DISTINCT t.area FROM TableEntity t WHERE t.branch.id = :branchId ORDER BY t.area")
     List<String> findDistinctAreasByBranchId(@Param("branchId") Long branchId);
+
+    // Tìm bàn trống theo chi nhánh và thời gian đặt
+    @Query("""
+                SELECT t
+                FROM TableEntity t
+                WHERE t.branch.id = :branchId
+                AND t.status = 'FREE'
+                AND t.id NOT IN (
+                    SELECT r.table.id
+                    FROM Reservation r
+                    WHERE r.status <> 'CANCELLED'
+                    AND (
+                        :checkIn < r.checkOutTime
+                        AND :checkOut > r.checkInTime
+                    )
+                )
+            """)
+    List<TableEntity> findAvailableTables(
+            @Param("branchId") Long branchId,
+            @Param("checkIn") LocalDateTime checkIn,
+            @Param("checkOut") LocalDateTime checkOut);
 }

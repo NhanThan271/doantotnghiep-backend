@@ -8,6 +8,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @RestController
@@ -65,5 +67,19 @@ public class TableController {
             @PathVariable Long branchId,
             @PathVariable String area) {
         return tableRepository.findByBranchIdAndArea(branchId, area);
+    }
+
+    @GetMapping("/branch/{branchId}/available")
+    public List<TableEntity> getAvailableTables(
+            @PathVariable Long branchId,
+            @RequestParam String checkIn,
+            @RequestParam String checkOut) {
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+
+        return tableService.getAvailableTables(
+                branchId,
+                LocalDateTime.parse(checkIn, formatter),
+                LocalDateTime.parse(checkOut, formatter));
     }
 }

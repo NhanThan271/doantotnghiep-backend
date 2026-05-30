@@ -4,15 +4,18 @@ import com.restaurant.doantotnghiep.dto.OrderStatusDTO;
 import com.restaurant.doantotnghiep.entity.Bill;
 import com.restaurant.doantotnghiep.entity.Order;
 import com.restaurant.doantotnghiep.entity.Reservation;
+import com.restaurant.doantotnghiep.entity.Room;
 import com.restaurant.doantotnghiep.entity.Food;
 import com.restaurant.doantotnghiep.entity.TableEntity;
 import com.restaurant.doantotnghiep.entity.enums.OrderStatus;
 import com.restaurant.doantotnghiep.entity.enums.PaymentMethod;
 import com.restaurant.doantotnghiep.entity.enums.PaymentStatus;
+import com.restaurant.doantotnghiep.entity.enums.RoomStatus;
 import com.restaurant.doantotnghiep.entity.enums.Status;
 import com.restaurant.doantotnghiep.mapper.OrderMapper;
 import com.restaurant.doantotnghiep.repository.BillRepository;
 import com.restaurant.doantotnghiep.repository.OrderRepository;
+import com.restaurant.doantotnghiep.repository.RoomRepository;
 import com.restaurant.doantotnghiep.repository.TableRepository;
 import com.restaurant.doantotnghiep.service.OrderService;
 import com.restaurant.doantotnghiep.service.FoodService;
@@ -41,6 +44,7 @@ public class OrderController {
     private final OrderRepository orderRepository;
     private final BillRepository billRepository;
     private final TableRepository tableRepository;
+    private final RoomRepository roomRepository;
 
     @Autowired
     public OrderController(OrderService orderService,
@@ -48,13 +52,15 @@ public class OrderController {
             OrderWebSocketController orderWebSocketController,
             OrderRepository orderRepository,
             BillRepository billRepository,
-            TableRepository tableRepository) {
+            TableRepository tableRepository,
+            RoomRepository roomRepository) {
         this.orderService = orderService;
         this.foodService = foodService;
         this.orderWebSocketController = orderWebSocketController;
         this.orderRepository = orderRepository;
         this.billRepository = billRepository;
         this.tableRepository = tableRepository;
+        this.roomRepository = roomRepository;
     }
 
     // Lấy danh sách tất cả đơn hàng
@@ -78,7 +84,6 @@ public class OrderController {
     public Order createOrder(@RequestBody Order order) {
         System.out.println("Received order: " + order);
         Order savedOrder = orderService.createOrder(order);
-        orderWebSocketController.sendNewOrder(savedOrder);
         return savedOrder;
     }
 
@@ -396,6 +401,17 @@ public class OrderController {
                 table.setUpdatedAt(now);
                 tableRepository.save(table);
                 System.out.println("Table #" + table.getNumber() + " freed");
+            }
+
+            if (order.getRoom() != null) {
+
+                Room room = order.getRoom();
+
+                room.setStatus(RoomStatus.ACTIVE);
+
+                room.setUpdatedAt(now);
+
+                roomRepository.save(room);
             }
 
             // LƯU ORDER

@@ -10,6 +10,8 @@ import com.restaurant.doantotnghiep.entity.TableEntity;
 import com.restaurant.doantotnghiep.entity.User;
 import com.restaurant.doantotnghiep.entity.enums.PaymentStatus;
 import com.restaurant.doantotnghiep.entity.enums.ReservationStatus;
+import com.restaurant.doantotnghiep.entity.enums.RoomStatus;
+import com.restaurant.doantotnghiep.entity.enums.Status;
 import com.restaurant.doantotnghiep.repository.BranchFoodRepository;
 import com.restaurant.doantotnghiep.repository.BranchRepository;
 import com.restaurant.doantotnghiep.repository.ReservationItemRepository;
@@ -43,6 +45,7 @@ public class ReservationServiceImpl implements ReservationService {
         private final BranchFoodRepository branchFoodRepository;
         private final ReservationItemRepository reservationItemRepository;
         private final KitchenOrderService kitchenOrderService;
+        private final OrderServiceImpl orderService;
 
         @Transactional
         public Reservation createFullReservation(Map<String, Object> request) {
@@ -73,8 +76,22 @@ public class ReservationServiceImpl implements ReservationService {
                                 ? Long.valueOf(request.get("roomId").toString())
                                 : null;
 
+                if (tableId == null && roomId == null) {
+                        throw new RuntimeException(
+                                        "Vui lòng chọn bàn hoặc phòng");
+                }
+
+                if (tableId != null && roomId != null) {
+                        throw new RuntimeException(
+                                        "Chỉ được chọn bàn hoặc phòng");
+                }
+
                 Double depositAmount = Double.valueOf(
                                 request.get("depositAmount").toString());
+                if (depositAmount < 0) {
+                        throw new RuntimeException(
+                                        "Tiền cọc không hợp lệ");
+                }
 
                 List<Map<String, Object>> items = (List<Map<String, Object>>) request.get("items");
 
@@ -87,7 +104,10 @@ public class ReservationServiceImpl implements ReservationService {
                 LocalDateTime checkOutTime = LocalDateTime.parse(
                                 request.get("checkOutTime").toString(),
                                 formatter);
-
+                if (!checkOutTime.isAfter(checkInTime)) {
+                        throw new RuntimeException(
+                                        "Thời gian trả phải sau thời gian nhận");
+                }
                 User user = null;
 
                 if (userId != null) {
@@ -99,7 +119,8 @@ public class ReservationServiceImpl implements ReservationService {
                                 .orElseThrow(() -> new RuntimeException("Branch not found"));
 
                 TableEntity table = (tableId != null)
-                                ? tableRepository.findById(tableId).orElse(null)
+                                ? tableRepository.findById(tableId)
+                                                .orElseThrow(() -> new RuntimeException("Table not found"))
                                 : null;
 
                 Room room = (roomId != null)
@@ -117,6 +138,19 @@ public class ReservationServiceImpl implements ReservationService {
                         if (conflict) {
                                 throw new RuntimeException(
                                                 "Phòng đã được đặt trong thời gian này");
+                        }
+                }
+
+                if (table != null) {
+
+                        boolean conflict = reservationRepository.existsTableBookingConflict(
+                                        tableId,
+                                        checkInTime,
+                                        checkOutTime);
+
+                        if (conflict) {
+                                throw new RuntimeException(
+                                                "Bàn đã được đặt trong thời gian này");
                         }
                 }
 
@@ -140,6 +174,10 @@ public class ReservationServiceImpl implements ReservationService {
                 reservation = reservationRepository.save(reservation);
 
                 double total = 0;
+
+                if (room != null) {
+                        total += room.getRoomFee().doubleValue();
+                }
 
                 for (Map<String, Object> item : items) {
 
@@ -168,6 +206,10 @@ public class ReservationServiceImpl implements ReservationService {
                 }
 
                 reservation.setTotalPrice(total);
+                if (depositAmount > total) {
+                        throw new RuntimeException(
+                                        "Tiền cọc không được lớn hơn tổng tiền");
+                }
 
                 return reservationRepository.save(reservation);
         }
@@ -206,16 +248,75 @@ public class ReservationServiceImpl implements ReservationService {
                                 .orElseThrow(() -> new RuntimeException("Reservation not found"));
 
                 reservation.setStatus(status);
+                reservation.setUpdatedAt(LocalDateTime.now());
 
-                if (status == ReservationStatus.CONFIRMED) {
-                        List<ReservationItem> items = reservationItemRepository
-                                        .findByReservationId(id);
+                if (status == ReservationStatus.CHECKED_IN) {
 
-                        if (!items.isEmpty()) {
-                                kitchenOrderService.createFromReservation(reservation, items);
+                        if (reservation.getTable() != null) {
+
+                                reservation.getTable().setStatus(Status.OCCUPIED);
+
+                                tableRepository.save(reservation.getTable());
+                        }
+
+                        if (reservation.getRoom() != null) {
+
+                                reservation.getRoom().setStatus(RoomStatus.OCCUPIED);
+
+                                roomRepository.save(reservation.getRoom());
+                        }
+
+                        // tạo order nếu chưa có
+                        if (reservation.getOrders() == null
+                                        || reservation.getOrders().isEmpty()) {
+
+                                orderService.createOrderFromReservation(
+                                                reservation.getId());
                         }
                 }
 
+                if (status == ReservationStatus.COMPLETED) {
+
+                        if (reservation.getPaymentStatus() != PaymentStatus.PAID) {
+                                throw new RuntimeException(
+                                                "Đơn đặt chưa thanh toán");
+                        }
+
+                        if (reservation.getTable() != null) {
+
+                                reservation.getTable().setStatus(Status.FREE);
+
+                                tableRepository.save(
+                                                reservation.getTable());
+                        }
+
+                        if (reservation.getRoom() != null) {
+
+                                reservation.getRoom().setStatus(RoomStatus.ACTIVE);
+
+                                roomRepository.save(
+                                                reservation.getRoom());
+                        }
+                }
+
+                if (status == ReservationStatus.CANCELLED) {
+
+                        if (reservation.getTable() != null) {
+
+                                reservation.getTable().setStatus(Status.FREE);
+
+                                tableRepository.save(
+                                                reservation.getTable());
+                        }
+
+                        if (reservation.getRoom() != null) {
+
+                                reservation.getRoom().setStatus(RoomStatus.ACTIVE);
+
+                                roomRepository.save(
+                                                reservation.getRoom());
+                        }
+                }
                 return reservationRepository.save(reservation);
         }
 }

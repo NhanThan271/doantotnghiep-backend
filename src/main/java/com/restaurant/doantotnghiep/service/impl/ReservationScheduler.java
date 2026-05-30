@@ -1,11 +1,8 @@
 package com.restaurant.doantotnghiep.service.impl;
 
 import com.restaurant.doantotnghiep.entity.Reservation;
-import com.restaurant.doantotnghiep.entity.ReservationItem;
 import com.restaurant.doantotnghiep.entity.enums.ReservationStatus;
 import com.restaurant.doantotnghiep.repository.ReservationRepository;
-import com.restaurant.doantotnghiep.repository.ReservationItemRepository;
-import com.restaurant.doantotnghiep.service.KitchenOrderService;
 import com.restaurant.doantotnghiep.service.ReservationService;
 import lombok.RequiredArgsConstructor;
 

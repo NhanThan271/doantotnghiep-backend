@@ -2,6 +2,6 @@ package com.restaurant.doantotnghiep.entity.enums;
 
 public enum RoomStatus {
     ACTIVE,
-    RESERVED,
+    OCCUPIED,
     MAINTENANCE
 }
