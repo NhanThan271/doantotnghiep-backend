@@ -1,6 +1,7 @@
 package com.restaurant.doantotnghiep.service.impl;
 
 import com.restaurant.doantotnghiep.entity.OrderItem;
+import com.restaurant.doantotnghiep.entity.enums.KitchenStatus;
 import com.restaurant.doantotnghiep.repository.OrderItemRepository;
 import com.restaurant.doantotnghiep.service.OrderItemService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,5 +50,10 @@ public class OrderItemServiceImpl implements OrderItemService {
     @Override
     public void deleteItem(Long id) {
         orderItemRepository.deleteById(id);
+    }
+
+    @Override
+    public List<OrderItem> getItemsByKitchenStatus(KitchenStatus status) {
+        return orderItemRepository.findByKitchenStatusOrderByCreatedAtAsc(status);
     }
 }

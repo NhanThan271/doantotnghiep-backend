@@ -147,12 +147,15 @@ public class OrderServiceImpl implements OrderService {
         kitchenOrder = kitchenOrderRepository.save(kitchenOrder);
 
         for (OrderItem item : order.getItems()) {
-            KitchenOrderItem kitchenItem = KitchenOrderItem.builder()
-                    .kitchenOrder(kitchenOrder)
-                    .food(item.getFood())
-                    .kitchenStatus(KitchenStatus.WAITING)
-                    .build();
-            kitchenOrderItemRepository.save(kitchenItem);
+            // TẠO NHIỀU KitchenOrderItem THEO QUANTITY
+            for (int i = 0; i < item.getQuantity(); i++) {
+                KitchenOrderItem kitchenItem = KitchenOrderItem.builder()
+                        .kitchenOrder(kitchenOrder)
+                        .food(item.getFood())
+                        .kitchenStatus(KitchenStatus.WAITING)
+                        .build();
+                kitchenOrderItemRepository.save(kitchenItem);
+            }
         }
     }
 
@@ -370,11 +373,9 @@ public class OrderServiceImpl implements OrderService {
     @Transactional
     public void addKitchenItemsForNewFood(Long orderId, Long foodId, int quantity) {
         List<KitchenOrder> kitchenOrders = kitchenOrderRepository.findByOrderId(orderId);
-
         KitchenOrder targetKitchenOrder;
 
         if (kitchenOrders.isEmpty()) {
-            // Chưa có KitchenOrder nào → tạo mới
             Order order = orderRepository.findById(orderId).orElseThrow();
             targetKitchenOrder = KitchenOrder.builder()
                     .order(order)
@@ -382,22 +383,22 @@ public class OrderServiceImpl implements OrderService {
                     .build();
             targetKitchenOrder = kitchenOrderRepository.save(targetKitchenOrder);
         } else {
-            // Lấy KitchenOrder cuối cùng (mới nhất)
             targetKitchenOrder = kitchenOrders.get(kitchenOrders.size() - 1);
-
-            // ← QUAN TRỌNG: luôn reset về WAITING để bếp thấy
             targetKitchenOrder.setKitchenStatus(KitchenOrderStatus.WAITING);
             targetKitchenOrder = kitchenOrderRepository.save(targetKitchenOrder);
         }
 
-        // Tạo KitchenOrderItem mới
         Food food = foodRepository.findById(foodId).orElseThrow();
-        KitchenOrderItem kitchenItem = KitchenOrderItem.builder()
-                .kitchenOrder(targetKitchenOrder)
-                .food(food)
-                .kitchenStatus(KitchenStatus.WAITING)
-                .build();
-        kitchenOrderItemRepository.save(kitchenItem);
+
+        // TẠO NHIỀU KitchenOrderItem THEO QUANTITY
+        for (int i = 0; i < quantity; i++) {
+            KitchenOrderItem kitchenItem = KitchenOrderItem.builder()
+                    .kitchenOrder(targetKitchenOrder)
+                    .food(food)
+                    .kitchenStatus(KitchenStatus.WAITING)
+                    .build();
+            kitchenOrderItemRepository.save(kitchenItem);
+        }
     }
 
     @Override

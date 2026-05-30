@@ -57,4 +57,11 @@ public class IngredientServiceImpl implements IngredientService {
     public List<Ingredient> search(String keyword) {
         return ingredientRepository.findByNameContainingIgnoreCase(keyword);
     }
+
+    @Override
+    public Ingredient updateStatus(Long id, Boolean isActive) {
+        Ingredient existing = getById(id);
+        existing.setIsActive(isActive);
+        return ingredientRepository.save(existing);
+    }
 }

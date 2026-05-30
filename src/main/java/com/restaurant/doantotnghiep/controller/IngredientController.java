@@ -61,4 +61,10 @@ public class IngredientController {
     public List<Ingredient> search(@RequestParam String keyword) {
         return ingredientService.search(keyword);
     }
+
+    @PutMapping("/{id}/status")
+    @PreAuthorize("hasRole('ADMIN')")
+    public Ingredient toggleStatus(@PathVariable Long id, @RequestBody java.util.Map<String, Boolean> body) {
+        return ingredientService.updateStatus(id, body.get("isActive"));
+    }
 }
