@@ -94,4 +94,16 @@ public class TableServiceImpl implements TableService {
         table.setUpdatedAt(LocalDateTime.now());
         return tableRepository.save(table);
     }
+
+    @Override
+    public List<TableEntity> getAvailableTables(
+            Long branchId,
+            LocalDateTime checkIn,
+            LocalDateTime checkOut) {
+
+        return tableRepository.findAvailableTables(
+                branchId,
+                checkIn,
+                checkOut);
+    }
 }

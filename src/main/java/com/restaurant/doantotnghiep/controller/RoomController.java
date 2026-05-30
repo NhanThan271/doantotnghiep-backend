@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -26,8 +27,9 @@ public class RoomController {
             @RequestParam Long branchId,
             @RequestParam Integer number,
             @RequestParam Integer capacity,
-            @RequestParam String area) {
-        return service.create(branchId, number, capacity, area);
+            @RequestParam String area,
+            @RequestParam BigDecimal roomFee) {
+        return service.create(branchId, number, capacity, area, roomFee);
     }
 
     @PutMapping("/{id}")
@@ -35,8 +37,9 @@ public class RoomController {
     public Room update(
             @PathVariable Long id,
             @RequestParam Integer capacity,
-            @RequestParam String area) {
-        return service.update(id, capacity, area);
+            @RequestParam String area,
+            @RequestParam BigDecimal roomFee) {
+        return service.update(id, capacity, area, roomFee);
     }
 
     @PutMapping("/{id}/status")

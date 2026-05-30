@@ -7,6 +7,7 @@ import com.restaurant.doantotnghiep.service.RoomService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -19,7 +20,7 @@ public class RoomServiceImpl implements RoomService {
     private final ReservationRepository reservationRepository;
 
     @Override
-    public Room create(Long branchId, Integer number, Integer capacity, String area) {
+    public Room create(Long branchId, Integer number, Integer capacity, String area, BigDecimal roomFee) {
 
         Branch branch = branchRepository.findById(branchId)
                 .orElseThrow(() -> new RuntimeException("Branch not found"));
@@ -36,19 +37,20 @@ public class RoomServiceImpl implements RoomService {
                 .capacity(capacity)
                 .area(area)
                 .status(RoomStatus.ACTIVE)
+                .roomFee(roomFee)
                 .build();
 
         return roomRepository.save(room);
     }
 
     @Override
-    public Room update(Long id, Integer capacity, String area) {
+    public Room update(Long id, Integer capacity, String area, BigDecimal roomFee) {
         Room room = roomRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Room not found"));
 
         room.setCapacity(capacity);
         room.setArea(area);
-
+        room.setRoomFee(roomFee);
         return roomRepository.save(room);
     }
 

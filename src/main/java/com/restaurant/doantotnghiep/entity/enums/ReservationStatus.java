@@ -3,5 +3,8 @@ package com.restaurant.doantotnghiep.entity.enums;
 public enum ReservationStatus {
     PENDING,
     CONFIRMED,
-    CANCELLED
+    CHECKED_IN,
+    COMPLETED,
+    CANCELLED,
+    REJECTED
 }

@@ -1,5 +1,6 @@
 package com.restaurant.doantotnghiep.entity;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 import com.restaurant.doantotnghiep.entity.enums.RoomStatus;
@@ -34,6 +35,9 @@ public class Room {
 
     @Column(nullable = false)
     private String area;
+
+    @Column(nullable = false)
+    private BigDecimal roomFee;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

@@ -36,6 +36,7 @@ public class OrderServiceImpl implements OrderService {
     private final FoodRepository foodRepository;
     private final ReservationRepository reservationRepository;
     private final ReservationItemRepository reservationItemRepository;
+    private final RoomRepository roomRepository;
 
     @Autowired
     public OrderServiceImpl(
@@ -53,7 +54,8 @@ public class OrderServiceImpl implements OrderService {
             KitchenOrderItemRepository kitchenOrderItemRepository,
             FoodRepository foodRepository,
             ReservationRepository reservationRepository,
-            ReservationItemRepository reservationItemRepository) {
+            ReservationItemRepository reservationItemRepository,
+            RoomRepository roomRepository) {
 
         this.orderRepository = orderRepository;
         this.orderWebSocketController = orderWebSocketController;
@@ -70,6 +72,7 @@ public class OrderServiceImpl implements OrderService {
         this.foodRepository = foodRepository;
         this.reservationRepository = reservationRepository;
         this.reservationItemRepository = reservationItemRepository;
+        this.roomRepository = roomRepository;
     }
 
     private BranchFood getBranchFood(Long branchId, Long foodId) {
@@ -114,29 +117,46 @@ public class OrderServiceImpl implements OrderService {
         Long branchId = order.getBranch().getId();
 
         for (OrderItem item : order.getItems()) {
+
+            if (Boolean.TRUE.equals(item.getInventoryDeducted())) {
+                continue;
+            }
+
             Long foodId = item.getFood().getId();
+
             int quantity = item.getQuantity();
 
             List<Recipe> recipes = recipeRepository.findByFoodId(foodId);
 
             for (Recipe recipe : recipes) {
+
                 Long ingredientId = recipe.getIngredient().getId();
+
                 double totalRequired = recipe.getQuantityRequired() * quantity;
 
                 BranchIngredient stock = branchIngredientRepository
-                        .findByBranchIdAndIngredientId(branchId, ingredientId)
-                        .orElseThrow(() -> new RuntimeException(
-                                "Không có nguyên liệu: " + recipe.getIngredient().getName()));
+                        .findByBranchIdAndIngredientId(
+                                branchId,
+                                ingredientId)
+                        .orElseThrow();
 
                 if (stock.getQuantity() < totalRequired) {
                     throw new RuntimeException(
-                            "Không đủ nguyên liệu: " + recipe.getIngredient().getName());
+                            "Không đủ nguyên liệu: "
+                                    + recipe.getIngredient().getName());
                 }
 
-                stock.setQuantity(stock.getQuantity() - totalRequired);
+                stock.setQuantity(
+                        stock.getQuantity() - totalRequired);
+
                 branchIngredientRepository.save(stock);
             }
+
+            // Đánh dấu sau khi xử lý hết recipe
+            item.setInventoryDeducted(true);
         }
+
+        orderRepository.save(order);
     }
 
     private void createKitchenOrderFor(Order order) {
@@ -159,18 +179,27 @@ public class OrderServiceImpl implements OrderService {
         }
     }
 
-    private void freeTable(Order order, Status status) {
-        if (order.getTable() == null)
-            return;
+    private void freeResource(Order order) {
 
-        TableEntity table = tableRepository.findById(order.getTable().getId())
-                .orElseThrow();
+        if (order.getTable() != null) {
+            TableEntity table = tableRepository.findById(
+                    order.getTable().getId())
+                    .orElseThrow();
 
-        if (table.getType() == TableType.PHYSICAL) {
-            table.setStatus(status);
+            table.setStatus(Status.FREE);
+
             tableRepository.save(table);
         }
-        tableRepository.save(table);
+
+        if (order.getRoom() != null) {
+            Room room = roomRepository.findById(
+                    order.getRoom().getId())
+                    .orElseThrow();
+
+            room.setStatus(RoomStatus.ACTIVE);
+
+            roomRepository.save(room);
+        }
     }
 
     @Override
@@ -287,6 +316,8 @@ public class OrderServiceImpl implements OrderService {
             newItem.calculateSubtotal();
             order.getItems().add(newItem);
         }
+        order.recalcTotal();
+        order.setTotalAmount(applyPromotion(order));
 
         return orderRepository.save(order);
     }
@@ -304,22 +335,32 @@ public class OrderServiceImpl implements OrderService {
         order.setTotalAmount(applyPromotion(order));
 
         if (status == OrderStatus.PAID) {
-            // Tạo Bill khi thanh toán
+            BigDecimal finalAmount = order.getTotalAmount();
+
+            if (order.getReservation() != null) {
+                finalAmount = finalAmount.subtract(
+                        BigDecimal.valueOf(
+                                order.getReservation().getDepositAmount()));
+                if (finalAmount.compareTo(BigDecimal.ZERO) < 0) {
+                    finalAmount = BigDecimal.ZERO;
+                }
+            }
+
             if (!billRepository.existsByOrderId(order.getId())) {
                 Bill bill = Bill.builder()
                         .order(order)
-                        .totalAmount(order.getTotalAmount())
+                        .totalAmount(finalAmount)
                         .paymentMethod(method)
                         .paymentStatus(PaymentStatus.PAID)
                         .issuedAt(LocalDateTime.now())
                         .build();
                 billRepository.save(bill);
             }
-            freeTable(order, Status.FREE);
+            freeResource(order);
         }
 
         if (status == OrderStatus.CANCELED) {
-            freeTable(order, Status.FREE);
+            freeResource(order);
         }
 
         Order updated = orderRepository.save(order);
@@ -432,6 +473,8 @@ public class OrderServiceImpl implements OrderService {
 
             oi.setOrder(order);
 
+            oi.setFood(ri.getBranchFood().getFood());
+
             oi.setBranchFood(ri.getBranchFood());
 
             oi.setQuantity(ri.getQuantity());
@@ -447,11 +490,15 @@ public class OrderServiceImpl implements OrderService {
 
         order.recalcTotal();
 
+        if (reservation.getRoom() != null) {
+            order.setTotalAmount(
+                    order.getTotalAmount()
+                            .add(reservation.getRoom().getRoomFee()));
+        }
+
         Order savedOrder = orderRepository.save(order);
 
-        reservation.setStatus(ReservationStatus.CONFIRMED);
-
-        reservationRepository.save(reservation);
+        createKitchenOrderFor(savedOrder);
 
         return savedOrder;
     }
