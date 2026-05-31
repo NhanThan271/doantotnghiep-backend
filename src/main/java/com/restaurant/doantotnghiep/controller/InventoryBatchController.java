@@ -1,5 +1,6 @@
 package com.restaurant.doantotnghiep.controller;
 
+import com.restaurant.doantotnghiep.dto.InventoryBatchDTO;
 import com.restaurant.doantotnghiep.entity.InventoryBatch;
 import com.restaurant.doantotnghiep.service.InventoryBatchService;
 
@@ -20,7 +21,6 @@ public class InventoryBatchController {
         this.batchService = batchService;
     }
 
-    // tạo batch (nhập kho)
     @PostMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     public InventoryBatch create(
@@ -34,21 +34,18 @@ public class InventoryBatchController {
         return batchService.create(branchId, ingredientId, quantity, date);
     }
 
-    // lấy tất cả
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     public List<InventoryBatch> getAll() {
         return batchService.getAll();
     }
 
-    // lấy theo id
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     public InventoryBatch getById(@PathVariable Long id) {
         return batchService.getById(id);
     }
 
-    // lấy theo branch + ingredient
     @GetMapping("/filter")
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     public List<InventoryBatch> getByBranchAndIngredient(
@@ -58,10 +55,15 @@ public class InventoryBatchController {
         return batchService.getByBranchAndIngredient(branchId, ingredientId);
     }
 
-    // xóa
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public void delete(@PathVariable Long id) {
         batchService.delete(id);
+    }
+
+    @GetMapping("/branch/{branchId}")
+    @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
+    public List<InventoryBatchDTO> getByBranch(@PathVariable Long branchId) {
+        return batchService.getByBranchAsDTO(branchId);
     }
 }
