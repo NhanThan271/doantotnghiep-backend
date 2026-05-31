@@ -8,7 +8,7 @@ import com.restaurant.doantotnghiep.entity.enums.OrderStatus;
 import com.restaurant.doantotnghiep.repository.*;
 import com.restaurant.doantotnghiep.service.KitchenOrderItemService;
 
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -94,26 +94,12 @@ public class KitchenOrderItemServiceImpl implements KitchenOrderItemService {
     }
 
     @Override
-    @Transactional
+    @Transactional(readOnly = true)
     public List<KitchenOrderItem> getActiveItems() {
-        List<KitchenOrderItem> items = repository.findByKitchenStatusIn(
-                List.of(KitchenStatus.WAITING, KitchenStatus.PREPARING));
-        // Force load lazy relationships
-        items.forEach(item -> {
-            if (item.getFood() != null)
-                item.getFood().getName();
-            if (item.getKitchenOrder() != null) {
-                var order = item.getKitchenOrder().getOrder();
-                if (order != null) {
-                    if (order.getTable() != null)
-                        order.getTable().getNumber();
-                    if (order.getBranch() != null)
-                        order.getBranch().getId();
-                    if (order.getItems() != null)
-                        order.getItems().size();
-                }
-            }
-        });
-        return items;
+        return repository.findActiveItems(
+                List.of(
+                        KitchenStatus.WAITING,
+                        KitchenStatus.PREPARING,
+                        KitchenStatus.READY));
     }
 }

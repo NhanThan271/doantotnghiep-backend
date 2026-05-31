@@ -63,8 +63,9 @@ public class ShiftServiceImpl implements ShiftService {
 
     // validate business
     private void validateShift(Shift shift) {
-        if (shift.getStartTime().isAfter(shift.getEndTime())) {
-            throw new RuntimeException("Start time must be before end time");
+        if (!shift.getStartTime().isBefore(shift.getEndTime())) {
+            throw new RuntimeException(
+                    "Start time must be before end time");
         }
     }
 }

@@ -1,6 +1,7 @@
 package com.restaurant.doantotnghiep.entity;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
@@ -14,7 +15,9 @@ import lombok.*;
 @AllArgsConstructor
 @Builder
 @Entity
-@Table(name = "staff_shifts")
+@Table(name = "staff_shifts", uniqueConstraints = {
+        @UniqueConstraint(columnNames = { "staff_id", "shift_id", "work_day" })
+})
 public class StaffShift {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -32,4 +35,5 @@ public class StaffShift {
 
     @Column(nullable = false)
     private LocalDate workDay;
+
 }
