@@ -88,6 +88,10 @@ public class Order {
     @JsonIgnoreProperties("order")
     private Payment payment;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "cashier_session_id")
+    private CashierSession cashierSession;
+
     // Tính lại tổng tiền
     public void recalcTotal() {
         if (items != null && !items.isEmpty()) {
