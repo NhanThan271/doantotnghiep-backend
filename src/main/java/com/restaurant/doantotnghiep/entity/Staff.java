@@ -33,4 +33,12 @@ public class Staff {
     @Enumerated(EnumType.STRING)
     private StaffStatus status;
 
+    @ManyToOne
+    @JoinColumn(name = "employment_type_id")
+    private EmploymentType employmentType;
+
+    private Double baseSalary;
+
+    private Double hourlyRate;
+
 }

@@ -2,6 +2,8 @@ package com.restaurant.doantotnghiep.entity;
 
 import java.time.LocalTime;
 
+import com.restaurant.doantotnghiep.entity.enums.ShiftStatus;
+
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -19,13 +21,16 @@ public class Shift {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
     private String name;
 
-    @Column(nullable = false)
     private LocalTime startTime;
 
-    @Column(nullable = false)
     private LocalTime endTime;
 
+    private Integer workingHours;
+
+    private Double shiftAllowance;
+
+    @Enumerated(EnumType.STRING)
+    private ShiftStatus status;
 }

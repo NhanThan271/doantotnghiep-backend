@@ -94,9 +94,6 @@ public class RoomServiceImpl implements RoomService {
             LocalDateTime checkIn,
             LocalDateTime checkOut) {
 
-        return reservationRepository.findAvailableRooms(
-                branchId,
-                checkIn,
-                checkOut);
+        return roomRepository.findAvailableRooms(branchId, checkIn, checkOut);
     }
 }
