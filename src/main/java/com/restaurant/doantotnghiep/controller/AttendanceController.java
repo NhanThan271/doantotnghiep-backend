@@ -4,6 +4,8 @@ import com.restaurant.doantotnghiep.dto.MonthlyAttendanceResponse;
 import com.restaurant.doantotnghiep.entity.Attendance;
 import com.restaurant.doantotnghiep.service.AttendanceService;
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -14,6 +16,7 @@ public class AttendanceController {
     private final AttendanceService attendanceService;
 
     @PostMapping("/check-in/{staffId}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
     public Attendance checkIn(
             @PathVariable Long staffId,
             @RequestParam Long shiftScheduleId) {
@@ -21,6 +24,7 @@ public class AttendanceController {
     }
 
     @PostMapping("/check-out/{staffId}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
     public Attendance checkOut(
             @PathVariable Long staffId,
             @RequestParam Long shiftScheduleId) {
@@ -28,6 +32,7 @@ public class AttendanceController {
     }
 
     @GetMapping("/today/{staffId}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
     public Attendance getToday(
             @PathVariable Long staffId,
             @RequestParam Long shiftScheduleId) {
@@ -35,6 +40,7 @@ public class AttendanceController {
     }
 
     @GetMapping("/monthly/{staffId}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
     public MonthlyAttendanceResponse getMonthly(
             @PathVariable Long staffId,
             @RequestParam int month,

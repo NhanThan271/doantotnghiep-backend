@@ -23,6 +23,20 @@ public class SalaryService {
         Staff staff = staffRepo.findById(staffId)
                 .orElseThrow(() -> new RuntimeException("Staff not found"));
 
+        EmploymentType type = staff.getEmploymentType();
+        if (type == null) {
+            SalaryResponse res = new SalaryResponse();
+            res.setStaffId(staffId);
+            res.setMonth(month);
+            res.setYear(year);
+            res.setEmploymentType("Chưa phân loại");
+            res.setTotalDaysWorked(0L);
+            res.setLateDays(0L);
+            res.setBaseSalary(staff.getBaseSalary() != null ? staff.getBaseSalary() : 0.0);
+            res.setTotalSalary(0.0);
+            return res;
+        }
+
         LocalDate start = LocalDate.of(year, month, 1);
         LocalDate end = start.withDayOfMonth(start.lengthOfMonth());
 
@@ -41,8 +55,6 @@ public class SalaryService {
                 .count();
 
         double salary = 0;
-
-        EmploymentType type = staff.getEmploymentType();
 
         // FULLTIME
         if (type.getName().equalsIgnoreCase("FULLTIME")) {
