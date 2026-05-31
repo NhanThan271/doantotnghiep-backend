@@ -1,5 +1,6 @@
 package com.restaurant.doantotnghiep.service;
 
+import com.restaurant.doantotnghiep.dto.InventoryBatchDTO;
 import com.restaurant.doantotnghiep.entity.InventoryBatch;
 
 import java.time.LocalDate;
@@ -17,4 +18,6 @@ public interface InventoryBatchService {
     List<InventoryBatch> getByBranchAndIngredient(Long branchId, Long ingredientId);
 
     void delete(Long id);
+
+    List<InventoryBatchDTO> getByBranchAsDTO(Long branchId);
 }

@@ -1,5 +1,6 @@
 package com.restaurant.doantotnghiep.service.impl;
 
+import com.restaurant.doantotnghiep.dto.InventoryBatchDTO;
 import com.restaurant.doantotnghiep.entity.*;
 import com.restaurant.doantotnghiep.repository.*;
 import com.restaurant.doantotnghiep.service.InventoryBatchService;
@@ -91,5 +92,21 @@ public class InventoryBatchServiceImpl implements InventoryBatchService {
     public void delete(Long id) {
         InventoryBatch batch = getById(id);
         batchRepository.delete(batch);
+    }
+
+    @Override
+    public List<InventoryBatchDTO> getByBranchAsDTO(Long branchId) {
+        List<InventoryBatch> batches = batchRepository.findByBranchIdOrderByImportedAtDesc(branchId);
+
+        return batches.stream().map(batch -> InventoryBatchDTO.builder()
+                .id(batch.getId())
+                .ingredientName(batch.getIngredient() != null ? batch.getIngredient().getName() : "N/A")
+                .unit(batch.getIngredient() != null ? batch.getIngredient().getUnit() : "")
+                .quantity(batch.getQuantity())
+                .remainingQuantity(batch.getRemainingQuantity())
+                .type("IMPORT") // mặc định IMPORT vì batch = nhập kho
+                .createdAt(batch.getImportedAt())
+                .warehouseName(batch.getWarehouse() != null ? batch.getWarehouse().getName() : null)
+                .build()).collect(java.util.stream.Collectors.toList());
     }
 }

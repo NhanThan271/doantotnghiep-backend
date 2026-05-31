@@ -10,6 +10,7 @@ import com.restaurant.doantotnghiep.dto.InventoryRequestCreateDTO;
 import com.restaurant.doantotnghiep.entity.Branch;
 import com.restaurant.doantotnghiep.entity.BranchIngredient;
 import com.restaurant.doantotnghiep.entity.Ingredient;
+import com.restaurant.doantotnghiep.entity.InventoryBatch;
 import com.restaurant.doantotnghiep.entity.InventoryRequest;
 import com.restaurant.doantotnghiep.entity.InventoryRequestItem;
 import com.restaurant.doantotnghiep.entity.User;
@@ -22,6 +23,7 @@ import com.restaurant.doantotnghiep.entity.enums.RequestType;
 import com.restaurant.doantotnghiep.repository.BranchIngredientRepository;
 import com.restaurant.doantotnghiep.repository.BranchRepository;
 import com.restaurant.doantotnghiep.repository.IngredientRepository;
+import com.restaurant.doantotnghiep.repository.InventoryBatchRepository;
 import com.restaurant.doantotnghiep.repository.InventoryRequestItemRepository;
 import com.restaurant.doantotnghiep.repository.InventoryRequestRepository;
 import com.restaurant.doantotnghiep.repository.UserRepository;
@@ -47,6 +49,7 @@ public class InventoryRequestServiceImpl implements InventoryRequestService {
     private final WarehouseRepository warehouseRepo;
     private final IngredientRepository ingredientRepo;
     private final UserRepository userRepository;
+    private final InventoryBatchRepository inventoryBatchRepository;
 
     @Override
     @Transactional
@@ -184,6 +187,17 @@ public class InventoryRequestServiceImpl implements InventoryRequestService {
 
             bi.setQuantity(bi.getQuantity() + item.getQuantity());
             branchIngredientRepo.save(bi);
+
+            InventoryBatch batch = InventoryBatch.builder()
+                    .branch(req.getBranch()) 
+                    .warehouse(req.getWarehouse()) 
+                    .ingredient(item.getIngredient())
+                    .quantity(item.getQuantity())
+                    .remainingQuantity(item.getQuantity())
+                    .importedAt(LocalDateTime.now())
+                    .build();
+
+            inventoryBatchRepository.save(batch);
         }
 
         req.setStatus(RequestStatus.RECEIVED);
