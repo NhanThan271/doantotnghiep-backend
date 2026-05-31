@@ -1,6 +1,7 @@
 package com.restaurant.doantotnghiep.service.impl;
 
 import com.restaurant.doantotnghiep.entity.Shift;
+import com.restaurant.doantotnghiep.entity.enums.ShiftStatus;
 import com.restaurant.doantotnghiep.repository.ShiftRepository;
 import com.restaurant.doantotnghiep.service.ShiftService;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +19,13 @@ public class ShiftServiceImpl implements ShiftService {
     @Override
     public Shift create(Shift shift) {
         validateShift(shift);
+        long hours = java.time.Duration.between(shift.getStartTime(), shift.getEndTime()).toHours();
+        shift.setWorkingHours((int) hours);
+
+        if (shift.getStatus() == null) {
+            shift.setStatus(ShiftStatus.ACTIVE);
+        }
+
         return shiftRepository.save(shift);
     }
 
@@ -28,6 +36,11 @@ public class ShiftServiceImpl implements ShiftService {
         existing.setName(shift.getName());
         existing.setStartTime(shift.getStartTime());
         existing.setEndTime(shift.getEndTime());
+        existing.setShiftAllowance(shift.getShiftAllowance());
+        existing.setStatus(shift.getStatus() != null ? shift.getStatus() : ShiftStatus.ACTIVE);
+
+        long hours = java.time.Duration.between(shift.getStartTime(), shift.getEndTime()).toHours();
+        existing.setWorkingHours((int) hours);
 
         validateShift(existing);
 

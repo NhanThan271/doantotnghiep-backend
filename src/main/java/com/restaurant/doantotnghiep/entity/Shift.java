@@ -32,5 +32,6 @@ public class Shift {
     private Double shiftAllowance;
 
     @Enumerated(EnumType.STRING)
+    @Column(columnDefinition = "VARCHAR(20)")
     private ShiftStatus status;
 }
