@@ -22,62 +22,70 @@ import java.util.stream.Collectors;
 @Slf4j
 public class KitchenNotificationScheduler {
 
-    private final ReservationRepository reservationRepository;
-    private final ReservationItemRepository reservationItemRepository;
-    private final RestTemplate restTemplate;
+        private final ReservationRepository reservationRepository;
+        private final ReservationItemRepository reservationItemRepository;
+        private final RestTemplate restTemplate;
 
-    @Scheduled(fixedRate = 5000)
-    public void notifyKitchen() {
+        @Scheduled(fixedRate = 5000)
+        public void notifyKitchen() {
 
-        LocalDateTime from = LocalDateTime.now().plusSeconds(20);
-        LocalDateTime to = LocalDateTime.now().plusSeconds(25);
+                LocalDateTime from = LocalDateTime.now().plusSeconds(20);
+                LocalDateTime to = LocalDateTime.now().plusSeconds(25);
 
-        List<Reservation> upcoming = reservationRepository
-                .findByCheckInTimeBetweenAndStatus(from, to, ReservationStatus.CONFIRMED);
+                List<Reservation> upcoming = reservationRepository
+                                .findByCheckInTimeBetweenAndStatus(from, to, ReservationStatus.CONFIRMED);
 
-        for (Reservation r : upcoming) {
+                for (Reservation r : upcoming) {
 
-            List<ReservationItem> items = reservationItemRepository
-                    .findByReservationId(r.getId());
+                        if (Boolean.TRUE.equals(r.getNotifiedKitchen())) {
+                                continue;
+                        }
 
-            List<Map<String, Object>> foodList = items.stream()
-                    .map(item -> Map.<String, Object>of(
-                            "foodName", item.getBranchFood().getFood().getName(),
-                            "quantity", item.getQuantity()))
-                    .collect(Collectors.toList());
+                        List<ReservationItem> items = reservationItemRepository
+                                        .findByReservationId(r.getId());
 
-            Map<String, Object> payload = new HashMap<>();
-            payload.put("reservationId", "RES-" + r.getId());
-            payload.put("customerName", r.getCustomerName());
-            payload.put("branch", r.getBranch().getName());
-            payload.put("table", r.getTable() != null
-                    ? "Bàn " + r.getTable().getNumber()
-                    : r.getRoom() != null
-                            ? "Phòng " + r.getRoom().getNumber()
-                            : "Chưa xác định");
-            payload.put("checkInTime", r.getCheckInTime()
-                    .format(DateTimeFormatter.ofPattern("HH:mm dd/MM/yyyy")));
+                        List<Map<String, Object>> foodList = items.stream()
+                                        .map(item -> Map.<String, Object>of(
+                                                        "foodName", item.getBranchFood().getFood().getName(),
+                                                        "quantity", item.getQuantity()))
+                                        .collect(Collectors.toList());
 
-            payload.put("checkOutTime", r.getCheckOutTime()
-                    .format(DateTimeFormatter.ofPattern("HH:mm dd/MM/yyyy")));
-            payload.put("foods", foodList);
-            payload.put("message", " Khách sẽ đến sau 40 phút, chuẩn bị món!");
+                        Map<String, Object> payload = new HashMap<>();
+                        payload.put("reservationId", "RES-" + r.getId());
+                        payload.put("customerName", r.getCustomerName());
+                        payload.put("branch", r.getBranch().getName());
+                        payload.put("table", r.getTable() != null
+                                        ? "Bàn " + r.getTable().getNumber()
+                                        : r.getRoom() != null
+                                                        ? "Phòng " + r.getRoom().getNumber()
+                                                        : "Chưa xác định");
+                        payload.put("checkInTime", r.getCheckInTime()
+                                        .format(DateTimeFormatter.ofPattern("HH:mm dd/MM/yyyy")));
 
-            try {
-                HttpHeaders headers = new HttpHeaders();
-                headers.setContentType(MediaType.APPLICATION_JSON);
-                HttpEntity<Map<String, Object>> entity = new HttpEntity<>(payload, headers);
+                        payload.put("checkOutTime", r.getCheckOutTime()
+                                        .format(DateTimeFormatter.ofPattern("HH:mm dd/MM/yyyy")));
+                        payload.put("foods", foodList);
+                        payload.put("message", " Khách sẽ đến sau 40 phút, chuẩn bị món!");
 
-                restTemplate.postForEntity(
-                        "http://localhost:3001/notify-kitchen-reservation",
-                        entity,
-                        Map.class);
+                        try {
+                                HttpHeaders headers = new HttpHeaders();
+                                headers.setContentType(MediaType.APPLICATION_JSON);
+                                HttpEntity<Map<String, Object>> entity = new HttpEntity<>(payload, headers);
 
-                log.info("Notified kitchen for RES-{}", r.getId());
+                                restTemplate.postForEntity(
+                                                "http://localhost:3001/notify-kitchen-reservation",
+                                                entity,
+                                                Map.class);
 
-            } catch (Exception e) {
-                log.error("Failed to notify kitchen: {}", e.getMessage());
-            }
+                                r.setNotifiedKitchen(true);
+
+                                reservationRepository.save(r);
+
+                                log.info("Notified kitchen for RES-{}", r.getId());
+
+                        } catch (Exception e) {
+                                log.error("Failed to notify kitchen: {}", e.getMessage());
+                        }
+                }
         }
-    }
 }

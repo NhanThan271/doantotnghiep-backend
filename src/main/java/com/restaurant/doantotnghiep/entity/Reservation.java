@@ -66,6 +66,12 @@ public class Reservation {
     @Column(nullable = false)
     private PaymentStatus paymentStatus;
 
+    @Column(name = "notified_four_hours")
+    private Boolean notifiedFourHours = false;
+
+    @Column(name = "notified_kitchen")
+    private Boolean notifiedKitchen = false;
+
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }
