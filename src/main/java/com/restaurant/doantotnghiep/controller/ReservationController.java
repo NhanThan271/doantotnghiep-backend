@@ -1,6 +1,7 @@
 package com.restaurant.doantotnghiep.controller;
 
 import com.restaurant.doantotnghiep.dto.ReservationResponse;
+import com.restaurant.doantotnghiep.dto.SeatMapResponse;
 import com.restaurant.doantotnghiep.entity.Reservation;
 import com.restaurant.doantotnghiep.entity.enums.ReservationStatus;
 import com.restaurant.doantotnghiep.service.ReservationService;
@@ -36,5 +37,17 @@ public class ReservationController {
             @PathVariable Long id,
             @RequestParam ReservationStatus status) {
         return reservationService.updateStatus(id, status);
+    }
+
+    @GetMapping("/tables")
+    @PreAuthorize("hasAnyRole('MANAGER','ADMIN','EMPLOYEE')")
+    public List<SeatMapResponse> getTables() {
+        return reservationService.getTableMap();
+    }
+
+    @GetMapping("/rooms")
+    @PreAuthorize("hasAnyRole('MANAGER','ADMIN','EMPLOYEE')")
+    public List<SeatMapResponse> getRooms() {
+        return reservationService.getRoomMap();
     }
 }

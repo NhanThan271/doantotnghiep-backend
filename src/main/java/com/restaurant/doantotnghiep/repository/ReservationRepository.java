@@ -80,4 +80,14 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
                             WHERE r.id = :id
                         """)
         Optional<Reservation> findByIdWithDetails(@Param("id") Long id);
+
+        @Query("""
+                        SELECT r
+                        FROM Reservation r
+                        WHERE r.status = 'CONFIRMED'
+                        AND r.checkInTime BETWEEN :from AND :to
+                        """)
+        List<Reservation> findUpcomingReservations(
+                        LocalDateTime from,
+                        LocalDateTime to);
 }

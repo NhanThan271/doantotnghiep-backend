@@ -430,6 +430,7 @@ public class OrderServiceImpl implements OrderService {
         }
 
         Food food = foodRepository.findById(foodId).orElseThrow();
+        Order order = orderRepository.findById(orderId).orElseThrow();
 
         // TẠO NHIỀU KitchenOrderItem THEO QUANTITY
         for (int i = 0; i < quantity; i++) {

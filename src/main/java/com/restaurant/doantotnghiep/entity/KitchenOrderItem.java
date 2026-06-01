@@ -23,7 +23,6 @@ public class KitchenOrderItem {
 
     @ManyToOne(optional = false, fetch = FetchType.EAGER)
     @JoinColumn(name = "food_id")
-    // @JsonIgnoreProperties({ "hibernateLazyInitializer", "handler" })
     private Food food;
 
     @Enumerated(EnumType.STRING)

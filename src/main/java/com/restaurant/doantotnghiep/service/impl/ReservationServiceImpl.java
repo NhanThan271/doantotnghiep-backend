@@ -1,6 +1,7 @@
 package com.restaurant.doantotnghiep.service.impl;
 
 import com.restaurant.doantotnghiep.dto.ReservationResponse;
+import com.restaurant.doantotnghiep.dto.SeatMapResponse;
 import com.restaurant.doantotnghiep.entity.Branch;
 import com.restaurant.doantotnghiep.entity.BranchFood;
 import com.restaurant.doantotnghiep.entity.Reservation;
@@ -318,5 +319,109 @@ public class ReservationServiceImpl implements ReservationService {
                         }
                 }
                 return reservationRepository.save(reservation);
+        }
+
+        public List<SeatMapResponse> getTableMap() {
+
+                LocalDateTime now = LocalDateTime.now();
+
+                LocalDateTime fourHoursLater = now.plusHours(4);
+
+                List<Reservation> reservations = reservationRepository
+                                .findUpcomingReservations(
+                                                now,
+                                                fourHoursLater);
+
+                Map<Long, Reservation> reservationMap = reservations.stream()
+                                .filter(r -> r.getTable() != null)
+                                .collect(Collectors.toMap(
+                                                r -> r.getTable().getId(),
+                                                r -> r));
+
+                return tableRepository.findAll()
+                                .stream()
+                                .map(table -> {
+
+                                        Reservation reservation = reservationMap.get(table.getId());
+
+                                        return SeatMapResponse.builder()
+                                                        .id(table.getId())
+                                                        .type("TABLE")
+                                                        .number(table.getNumber())
+                                                        .area(table.getArea())
+                                                        .status(table.getStatus().name())
+                                                        .hasUpcomingReservation(
+                                                                        reservation != null)
+                                                        .reservationId(
+                                                                        reservation != null
+                                                                                        ? reservation.getId()
+                                                                                        : null)
+                                                        .customerName(
+                                                                        reservation != null
+                                                                                        ? reservation.getCustomerName()
+                                                                                        : null)
+                                                        .checkInTime(
+                                                                        reservation != null
+                                                                                        ? reservation.getCheckInTime()
+                                                                                        : null)
+                                                        .checkOutTime(
+                                                                        reservation != null
+                                                                                        ? reservation.getCheckOutTime()
+                                                                                        : null)
+                                                        .build();
+                                })
+                                .toList();
+        }
+
+        public List<SeatMapResponse> getRoomMap() {
+
+                LocalDateTime now = LocalDateTime.now();
+
+                LocalDateTime fourHoursLater = now.plusHours(4);
+
+                List<Reservation> reservations = reservationRepository
+                                .findUpcomingReservations(
+                                                now,
+                                                fourHoursLater);
+
+                Map<Long, Reservation> reservationMap = reservations.stream()
+                                .filter(r -> r.getRoom() != null)
+                                .collect(Collectors.toMap(
+                                                r -> r.getRoom().getId(),
+                                                r -> r));
+
+                return roomRepository.findAll()
+                                .stream()
+                                .map(room -> {
+
+                                        Reservation reservation = reservationMap.get(room.getId());
+
+                                        return SeatMapResponse.builder()
+                                                        .id(room.getId())
+                                                        .type("ROOM")
+                                                        .number(room.getNumber())
+                                                        .area(room.getArea())
+                                                        .status(room.getStatus().name())
+                                                        .hasUpcomingReservation(
+                                                                        reservation != null)
+                                                        .reservationId(
+                                                                        reservation != null
+                                                                                        ? reservation.getId()
+                                                                                        : null)
+                                                        .customerName(
+                                                                        reservation != null
+                                                                                        ? reservation.getCustomerName()
+                                                                                        : null)
+                                                        .checkInTime(
+                                                                        reservation != null
+                                                                                        ? reservation.getCheckInTime()
+                                                                                        : null)
+                                                        .checkOutTime(
+                                                                        reservation != null
+                                                                                        ? reservation.getCheckOutTime()
+                                                                                        : null)
+                                                        .build();
+                                })
+                                .toList();
         }
 }
