@@ -6,48 +6,54 @@ import com.restaurant.doantotnghiep.service.CashierSessionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 @RestController
 @RequestMapping("/api/cashier-sessions")
 @RequiredArgsConstructor
 public class CashierSessionController {
 
-    private final CashierSessionService service;
+        private final CashierSessionService service;
 
-    @PostMapping("/open")
-    public ResponseEntity<?> open(
-            @RequestBody OpenSessionRequest request) {
-        return ResponseEntity.ok(
-                service.openSession(request));
-    }
+        @PostMapping("/open")
+        @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
+        public ResponseEntity<?> open(
+                        @RequestBody OpenSessionRequest request) {
+                return ResponseEntity.ok(
+                                service.openSession(request));
+        }
 
-    @PostMapping("/{id}/close")
-    public ResponseEntity<?> close(
-            @PathVariable Long id,
-            @RequestBody CloseSessionRequest request) {
-        return ResponseEntity.ok(
-                service.closeSession(id, request));
-    }
+        @PostMapping("/{id}/close")
+        @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
+        public ResponseEntity<?> close(
+                        @PathVariable Long id,
+                        @RequestBody CloseSessionRequest request) {
+                return ResponseEntity.ok(
+                                service.closeSession(id, request));
+        }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<?> detail(
-            @PathVariable Long id) {
-        return ResponseEntity.ok(
-                service.getById(id));
-    }
+        @GetMapping("/{id}")
+        @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
+        public ResponseEntity<?> detail(
+                        @PathVariable Long id) {
+                return ResponseEntity.ok(
+                                service.getById(id));
+        }
 
-    @GetMapping
-    public ResponseEntity<?> history() {
-        return ResponseEntity.ok(
-                service.getHistory());
-    }
+        @GetMapping
+        @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
+        public ResponseEntity<?> history() {
+                return ResponseEntity.ok(
+                                service.getHistory());
+        }
 
-    @GetMapping("/current/{staffId}")
-    public ResponseEntity<?> current(
-            @PathVariable Long staffId) {
+        @GetMapping("/current/{staffId}")
+        @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
+        public ResponseEntity<?> current(
+                        @PathVariable Long staffId) {
 
-        return ResponseEntity.ok(
-                service.getCurrentSession(staffId));
-    }
+                return ResponseEntity.ok(
+                                service.getCurrentSession(staffId));
+        }
 
 }

@@ -53,6 +53,9 @@ public class KitchenNotificationScheduler {
                         Map<String, Object> payload = new HashMap<>();
                         payload.put("reservationId", "RES-" + r.getId());
                         payload.put("customerName", r.getCustomerName());
+                        payload.put(
+                                        "branchId",
+                                        r.getBranch().getId());
                         payload.put("branch", r.getBranch().getName());
                         payload.put("table", r.getTable() != null
                                         ? "Bàn " + r.getTable().getNumber()
