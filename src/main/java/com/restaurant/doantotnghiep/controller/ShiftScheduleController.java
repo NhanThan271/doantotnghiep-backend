@@ -18,7 +18,7 @@ public class ShiftScheduleController {
     private final ShiftScheduleService service;
 
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     public ShiftSchedule create(@RequestBody ShiftSchedule shiftSchedule) {
         return service.create(shiftSchedule);
     }
@@ -33,7 +33,7 @@ public class ShiftScheduleController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     public void delete(@PathVariable Long id) {
         service.delete(id);
     }

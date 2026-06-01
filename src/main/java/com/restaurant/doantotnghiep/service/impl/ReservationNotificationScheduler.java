@@ -71,6 +71,17 @@ public class ReservationNotificationScheduler {
             payload.put("type", "UPCOMING_RESERVATION");
             payload.put("message", message);
             payload.put("reservationId", reservation.getId());
+            payload.put("branchId",
+                    reservation.getBranch().getId());
+
+            payload.put("customerName",
+                    reservation.getCustomerName());
+
+            payload.put("checkInTime",
+                    reservation.getCheckInTime());
+
+            payload.put("location",
+                    location);
 
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);

@@ -1,5 +1,6 @@
 package com.restaurant.doantotnghiep.service;
 
+import com.restaurant.doantotnghiep.dto.CashierSessionResponse;
 import com.restaurant.doantotnghiep.dto.CloseSessionRequest;
 import com.restaurant.doantotnghiep.dto.OpenSessionRequest;
 import com.restaurant.doantotnghiep.entity.CashierSession;
@@ -14,7 +15,7 @@ public interface CashierSessionService {
             Long sessionId,
             CloseSessionRequest request);
 
-    CashierSession getCurrentSession(Long staffId);
+    CashierSessionResponse getCurrentSession(Long staffId);
 
     List<CashierSession> getHistory();
 
