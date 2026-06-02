@@ -2,6 +2,8 @@ package com.restaurant.doantotnghiep.controller;
 
 import java.util.List;
 
+import com.restaurant.doantotnghiep.dto.KitchenOrderItemResponse;
+import com.restaurant.doantotnghiep.entity.KitchenOrderItem;
 import com.restaurant.doantotnghiep.entity.OrderItem;
 import com.restaurant.doantotnghiep.entity.enums.KitchenStatus;
 import com.restaurant.doantotnghiep.service.KitchenService;
@@ -26,11 +28,17 @@ public class KitchenController {
     }
 
     @PutMapping("/order-items/{id}/status")
-    @PreAuthorize("hasAnyRole('EMPLOYEE','MANAGER','ADMIN')")
-    public OrderItem updateStatus(
+    public KitchenOrderItemResponse updateStatus(
+            @PathVariable Long id,
+            @RequestParam KitchenStatus status,
+            @RequestParam(defaultValue = "1") int quantity) {
+        return kitchenService.updateKitchenStatus(id, status, quantity);
+    }
+
+    @PutMapping("/order-items/{id}/status-only")
+    public KitchenOrderItemResponse updateStatusOnly(
             @PathVariable Long id,
             @RequestParam KitchenStatus status) {
-
-        return kitchenService.updateKitchenStatus(id, status);
+        return kitchenService.updateKitchenStatusOnly(id, status);
     }
 }

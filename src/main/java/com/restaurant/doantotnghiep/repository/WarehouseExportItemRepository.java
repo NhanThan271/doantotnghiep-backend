@@ -6,4 +6,5 @@ import java.util.List;
 
 public interface WarehouseExportItemRepository extends JpaRepository<WarehouseExportItem, Long> {
         List<WarehouseExportItem> findByExportId(Long exportId);
+
 }

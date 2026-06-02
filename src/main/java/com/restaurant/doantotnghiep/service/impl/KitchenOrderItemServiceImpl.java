@@ -35,7 +35,7 @@ public class KitchenOrderItemServiceImpl implements KitchenOrderItemService {
         KitchenOrderItem item = KitchenOrderItem.builder()
                 .kitchenOrder(kitchenOrder)
                 .food(food)
-                .kitchenStatus(KitchenStatus.PREPARING)
+                .kitchenStatus(KitchenStatus.WAITING)
                 .build();
 
         return repository.save(item);

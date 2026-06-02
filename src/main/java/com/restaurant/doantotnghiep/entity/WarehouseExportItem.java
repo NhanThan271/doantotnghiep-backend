@@ -26,4 +26,8 @@ public class WarehouseExportItem {
 
     @Column(nullable = false)
     private Double quantity;
+
+    @ManyToOne
+    @JoinColumn(name = "batch_id")
+    private InventoryBatch batch;
 }
