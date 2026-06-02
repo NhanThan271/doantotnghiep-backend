@@ -1,6 +1,7 @@
 package com.restaurant.doantotnghiep.service;
 
 import com.restaurant.doantotnghiep.dto.StaffShiftDTO;
+import com.restaurant.doantotnghiep.dto.WeeklyScheduleDTO;
 import com.restaurant.doantotnghiep.entity.StaffShift;
 
 import java.time.LocalDate;
@@ -23,4 +24,11 @@ public interface StaffShiftService {
     List<StaffShift> getByStaffAndDate(Long staffId, LocalDate date);
 
     List<StaffShiftDTO> getByDate(LocalDate date);
+
+    List<StaffShiftDTO> getWeeklySchedule(
+            Long staffId,
+            LocalDate startDate);
+
+    List<WeeklyScheduleDTO> findByBranchIdAndWorkDayRange(Long branchId,
+            LocalDate startDate);
 }

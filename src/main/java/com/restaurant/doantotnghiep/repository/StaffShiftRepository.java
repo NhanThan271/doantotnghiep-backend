@@ -9,12 +9,20 @@ import java.util.Optional;
 
 public interface StaffShiftRepository extends JpaRepository<StaffShift, Long> {
 
-    List<StaffShift> findByStaffId(Long staffId);
+        List<StaffShift> findByStaffId(Long staffId);
 
-    List<StaffShift> findByWorkDay(LocalDate workDay);
+        List<StaffShift> findByWorkDay(LocalDate workDay);
 
-    List<StaffShift> findByStaffIdAndWorkDay(Long staffId, LocalDate workDay);
+        List<StaffShift> findByStaffIdAndWorkDay(Long staffId, LocalDate workDay);
 
-    Optional<StaffShift> findByStaffIdAndShiftIdAndWorkDay(
-            Long staffId, Long shiftId, LocalDate workDay);
+        Optional<StaffShift> findByStaffIdAndShiftIdAndWorkDay(
+                        Long staffId, Long shiftId, LocalDate workDay);
+
+        List<StaffShift> findByWorkDayBetween(
+                        LocalDate startDate,
+                        LocalDate endDate);
+
+        long countByWorkDayAndShiftId(
+                        LocalDate workDay,
+                        Long shiftId);
 }
