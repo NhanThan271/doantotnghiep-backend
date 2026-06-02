@@ -1,6 +1,7 @@
 package com.restaurant.doantotnghiep.controller;
 
 import com.restaurant.doantotnghiep.dto.StaffShiftDTO;
+import com.restaurant.doantotnghiep.dto.WeeklyScheduleDTO;
 import com.restaurant.doantotnghiep.entity.StaffShift;
 import com.restaurant.doantotnghiep.service.StaffShiftService;
 import lombok.RequiredArgsConstructor;
@@ -74,4 +75,25 @@ public class StaffShiftController {
             @RequestParam LocalDate date) {
         return staffShiftService.getByStaffAndDate(staffId, date);
     }
+
+    @GetMapping("/staff/{staffId}/week")
+    @PreAuthorize("hasAnyRole('ADMIN','MANAGER', 'EMPLOYEE')")
+    public List<StaffShiftDTO> getWeeklySchedule(
+            @PathVariable Long staffId,
+            @RequestParam LocalDate startDate) {
+
+        return staffShiftService
+                .getWeeklySchedule(staffId, startDate);
+    }
+
+    @GetMapping("/manager/week")
+    @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
+    public List<WeeklyScheduleDTO> getManagerWeeklySchedule(
+            @RequestParam Long branchId,
+            @RequestParam LocalDate startDate) {
+
+        return staffShiftService
+                .findByBranchIdAndWorkDayRange(branchId, startDate);
+    }
+
 }
