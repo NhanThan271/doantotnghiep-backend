@@ -21,7 +21,7 @@ public class StaffController {
 
     // Tạo staff
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
     public Staff create(
             @RequestParam Long userId,
             @RequestParam Long branchId,
@@ -40,7 +40,7 @@ public class StaffController {
 
     // Xóa staff
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
     public void delete(@PathVariable Long id) {
         service.delete(id);
     }
