@@ -1,10 +1,13 @@
 package com.restaurant.doantotnghiep.service.impl;
 
 import com.restaurant.doantotnghiep.dto.StaffShiftDTO;
+import com.restaurant.doantotnghiep.dto.WeeklyScheduleDTO;
 import com.restaurant.doantotnghiep.entity.Shift;
+import com.restaurant.doantotnghiep.entity.ShiftSchedule;
 import com.restaurant.doantotnghiep.entity.Staff;
 import com.restaurant.doantotnghiep.entity.StaffShift;
 import com.restaurant.doantotnghiep.repository.ShiftRepository;
+import com.restaurant.doantotnghiep.repository.ShiftScheduleRepository;
 import com.restaurant.doantotnghiep.repository.StaffRepository;
 import com.restaurant.doantotnghiep.repository.StaffShiftRepository;
 import com.restaurant.doantotnghiep.service.StaffShiftService;
@@ -13,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -23,6 +27,7 @@ public class StaffShiftServiceImpl implements StaffShiftService {
     private final StaffShiftRepository staffShiftRepository;
     private final StaffRepository staffRepository;
     private final ShiftRepository shiftRepository;
+    private final ShiftScheduleRepository shiftScheduleRepository;
 
     @Override
     public StaffShiftDTO assignShift(Long staffId, Long shiftId, LocalDate workDay) {
@@ -137,5 +142,61 @@ public class StaffShiftServiceImpl implements StaffShiftService {
                 .shift(shiftInfo)
                 .staff(staffInfo)
                 .build();
+    }
+
+    @Override
+    public List<StaffShiftDTO> getWeeklySchedule(Long staffId, LocalDate startDate) {
+        LocalDate endDate = startDate.plusDays(6);
+        return staffShiftRepository.findByWorkDayBetween(startDate, endDate)
+                .stream()
+                .filter(ss -> ss.getStaff().getId().equals(staffId))
+                .map(this::toDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<WeeklyScheduleDTO> findByBranchIdAndWorkDayRange(Long branchId,
+            LocalDate startDate) {
+
+        LocalDate endDate = startDate.plusDays(6);
+
+        List<ShiftSchedule> schedules = shiftScheduleRepository.findByBranchIdAndWorkDayRange(branchId, startDate,
+                endDate);
+
+        List<WeeklyScheduleDTO> result = new ArrayList<>();
+
+        for (ShiftSchedule schedule : schedules) {
+
+            long assigned = staffShiftRepository.countByWorkDayAndShiftId(
+                    schedule.getWorkDay(),
+                    schedule.getShift().getId());
+
+            WeeklyScheduleDTO dto = new WeeklyScheduleDTO();
+
+            dto.setWorkDay(schedule.getWorkDay());
+
+            dto.setShiftId(schedule.getShift().getId());
+
+            dto.setShiftName(
+                    schedule.getShift().getName());
+
+            dto.setRequiredStaff(
+                    schedule.getRequiredStaff());
+
+            dto.setMaxStaff(
+                    schedule.getMaxStaff());
+
+            dto.setAssignedStaff(
+                    (int) assigned);
+
+            dto.setMissingStaff(
+                    Math.max(
+                            0,
+                            schedule.getRequiredStaff() - (int) assigned));
+
+            result.add(dto);
+        }
+
+        return result;
     }
 }
