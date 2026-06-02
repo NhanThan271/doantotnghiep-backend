@@ -47,7 +47,7 @@ public class StaffController {
 
     // Lấy theo chi nhánh
     @GetMapping("/branch/{branchId}")
-    @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
+    @PreAuthorize("hasAnyRole('ADMIN','MANAGER', 'EMPLOYEE')")
     public List<StaffDTO> getByBranch(@PathVariable Long branchId) {
         return service.getByBranch(branchId);
     }
@@ -61,7 +61,7 @@ public class StaffController {
 
     // Lọc theo branch + role
     @GetMapping("/branch/{branchId}/status")
-    @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
+    @PreAuthorize("hasAnyRole('ADMIN','MANAGER', 'EMPLOYEE')")
     public List<Staff> getByBranchAndStatus(
             @PathVariable Long branchId,
             @RequestParam StaffPosition position) {
@@ -70,7 +70,7 @@ public class StaffController {
 
     // Chi tiết
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
+    @PreAuthorize("hasAnyRole('ADMIN','MANAGER', 'EMPLOYEE')")
     public Staff getById(@PathVariable Long id) {
         return service.getById(id);
     }
