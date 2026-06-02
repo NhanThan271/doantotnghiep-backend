@@ -30,6 +30,8 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -322,55 +324,74 @@ public class ReservationServiceImpl implements ReservationService {
         }
 
         public List<SeatMapResponse> getTableMap() {
+                try {
+                        LocalDateTime now = LocalDateTime.now();
+                        LocalDateTime fourHoursLater = now.plusHours(4);
 
-                LocalDateTime now = LocalDateTime.now();
+                        List<Reservation> reservations = reservationRepository
+                                        .findUpcomingReservations(now, fourHoursLater);
 
-                LocalDateTime fourHoursLater = now.plusHours(4);
+                        // Sửa: Dùng Map với merge function để tránh duplicate key
+                        Map<Long, Reservation> reservationMap = new HashMap<>();
+                        if (reservations != null) {
+                                for (Reservation r : reservations) {
+                                        if (r.getTable() != null) {
+                                                reservationMap.put(r.getTable().getId(), r);
+                                        }
+                                }
+                        }
 
-                List<Reservation> reservations = reservationRepository
-                                .findUpcomingReservations(
-                                                now,
-                                                fourHoursLater);
+                        List<TableEntity> allTables = tableRepository.findAll();
+                        if (allTables == null) {
+                                return new ArrayList<>();
+                        }
 
-                Map<Long, Reservation> reservationMap = reservations.stream()
-                                .filter(r -> r.getTable() != null)
-                                .collect(Collectors.toMap(
-                                                r -> r.getTable().getId(),
-                                                r -> r));
-
-                return tableRepository.findAll()
-                                .stream()
-                                .map(table -> {
-
+                        List<SeatMapResponse> result = new ArrayList<>();
+                        for (TableEntity table : allTables) {
+                                try {
                                         Reservation reservation = reservationMap.get(table.getId());
 
-                                        return SeatMapResponse.builder()
+                                        // Xử lý status an toàn, tránh NullPointerException
+                                        String status = "FREE";
+                                        if (table.getStatus() != null) {
+                                                status = table.getStatus().name();
+                                        }
+
+                                        // Nếu có reservation CONFIRMED trong tương lai, đánh dấu là RESERVED
+                                        if (reservation != null && "FREE".equals(status)) {
+                                                status = "RESERVED";
+                                        }
+
+                                        SeatMapResponse response = SeatMapResponse.builder()
                                                         .id(table.getId())
                                                         .type("TABLE")
                                                         .number(table.getNumber())
                                                         .area(table.getArea())
-                                                        .status(table.getStatus().name())
-                                                        .hasUpcomingReservation(
-                                                                        reservation != null)
-                                                        .reservationId(
-                                                                        reservation != null
-                                                                                        ? reservation.getId()
-                                                                                        : null)
-                                                        .customerName(
-                                                                        reservation != null
-                                                                                        ? reservation.getCustomerName()
-                                                                                        : null)
-                                                        .checkInTime(
-                                                                        reservation != null
-                                                                                        ? reservation.getCheckInTime()
-                                                                                        : null)
-                                                        .checkOutTime(
-                                                                        reservation != null
-                                                                                        ? reservation.getCheckOutTime()
-                                                                                        : null)
+                                                        .status(status)
+                                                        .hasUpcomingReservation(reservation != null)
+                                                        .reservationId(reservation != null ? reservation.getId() : null)
+                                                        .customerName(reservation != null
+                                                                        ? reservation.getCustomerName()
+                                                                        : null)
+                                                        .checkInTime(reservation != null ? reservation.getCheckInTime()
+                                                                        : null)
+                                                        .checkOutTime(reservation != null
+                                                                        ? reservation.getCheckOutTime()
+                                                                        : null)
                                                         .build();
-                                })
-                                .toList();
+                                        result.add(response);
+                                } catch (Exception e) {
+                                        // Log lỗi nhưng không dừng toàn bộ
+                                        System.err.println(
+                                                        "Error mapping table " + table.getId() + ": " + e.getMessage());
+                                }
+                        }
+                        return result;
+                } catch (Exception e) {
+                        System.err.println("Error in getTableMap: " + e.getMessage());
+                        e.printStackTrace();
+                        return new ArrayList<>();
+                }
         }
 
         public List<SeatMapResponse> getRoomMap() {
