@@ -109,15 +109,6 @@ public class KitchenOrderItemController {
                         branch.put("id", order.getBranch().getId());
                         dto.put("branch", branch);
                     }
-
-                    // Lấy quantity từ order_items
-                    if (order.getItems() != null && item.getFood() != null) {
-                        order.getItems().stream()
-                                .filter(oi -> oi.getFood() != null &&
-                                        oi.getFood().getId().equals(item.getFood().getId()))
-                                .findFirst()
-                                .ifPresent(oi -> dto.put("quantity", oi.getQuantity()));
-                    }
                 }
 
                 if (!dto.containsKey("quantity")) {

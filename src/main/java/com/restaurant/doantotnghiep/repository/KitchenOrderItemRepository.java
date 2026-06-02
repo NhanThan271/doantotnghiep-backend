@@ -2,11 +2,16 @@ package com.restaurant.doantotnghiep.repository;
 
 import com.restaurant.doantotnghiep.entity.KitchenOrderItem;
 import com.restaurant.doantotnghiep.entity.enums.KitchenStatus;
+
+import jakarta.persistence.LockModeType;
+
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface KitchenOrderItemRepository extends JpaRepository<KitchenOrderItem, Long> {
 
@@ -31,4 +36,18 @@ public interface KitchenOrderItemRepository extends JpaRepository<KitchenOrderIt
             """)
     List<KitchenOrderItem> findActiveItems(
             @Param("statuses") List<KitchenStatus> statuses);
+
+    @Query("""
+                SELECT koi FROM KitchenOrderItem koi
+                LEFT JOIN FETCH koi.kitchenOrder ko
+                LEFT JOIN FETCH ko.order o
+                LEFT JOIN FETCH o.branch
+                WHERE koi.id = :id
+            """)
+    Optional<KitchenOrderItem> findByIdWithDetails(@Param("id") Long id);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT k FROM KitchenOrderItem k WHERE k.id = :id")
+    Optional<KitchenOrderItem> findByIdForUpdate(@Param("id") Long id);
+
 }

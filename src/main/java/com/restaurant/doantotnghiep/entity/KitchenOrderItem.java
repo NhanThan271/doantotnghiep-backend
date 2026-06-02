@@ -27,5 +27,5 @@ public class KitchenOrderItem {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "kitchen_order_status", nullable = false)
-    private KitchenStatus kitchenStatus = KitchenStatus.PREPARING;
+    private KitchenStatus kitchenStatus = KitchenStatus.WAITING;
 }

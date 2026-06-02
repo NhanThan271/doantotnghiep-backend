@@ -5,6 +5,7 @@ import com.restaurant.doantotnghiep.entity.InventoryBatch;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 
 public interface InventoryBatchService {
 
@@ -20,4 +21,12 @@ public interface InventoryBatchService {
     void delete(Long id);
 
     List<InventoryBatchDTO> getByBranchAsDTO(Long branchId);
+
+    List<InventoryBatch> getNearExpired();
+
+    List<InventoryBatch> getWarehouseBatches(Long warehouseId);
+
+    List<Map<String, Object>> getAggregatedByWarehouse(Long warehouseId);
+
+    List<Map<String, Object>> getAggregatedByBranch(Long branchId);
 }
