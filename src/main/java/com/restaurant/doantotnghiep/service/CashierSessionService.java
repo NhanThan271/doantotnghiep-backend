@@ -26,5 +26,4 @@ public interface CashierSessionService {
                         Long sessionId,
                         BigDecimal amount,
                         String paymentMethod);
-
 }
