@@ -8,22 +8,17 @@ import java.math.BigDecimal;
 import java.util.List;
 
 public interface CashierSessionService {
-
     CashierSessionResponse openSession(OpenSessionRequest request);
 
-    CashierSession closeSession(
-            Long sessionId,
-            CloseSessionRequest request);
+        CashierSessionResponse closeSession(Long sessionId, CloseSessionRequest request);
 
-    CashierSessionResponse getCurrentSession(Long staffId);
+        CashierSessionResponse getCurrentSession(Long staffId);
 
-    List<CashierSession> getHistory();
+        List<CashierSession> getHistory();
 
-    CashierSession getById(Long id);
+        CashierSession getById(Long id);
 
-    void updateRevenue(
-            Long sessionId,
-            BigDecimal amount,
-            String paymentMethod);
+        CashierSessionResponse getSessionResponse(Long id);
 
+        void updateRevenue(Long sessionId, BigDecimal amount, String paymentMethod);
 }
