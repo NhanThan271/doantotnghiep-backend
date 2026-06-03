@@ -29,7 +29,7 @@ public class CashierSessionServiceImpl implements CashierSessionService {
         private final CashierSessionRepository cashierSessionRepository;
 
         @Override
-        @Transactional
+        @Transactional //sửa chỗ này
         public CashierSessionResponse openSession(OpenSessionRequest request) {
 
                 Staff staff = staffRepository.findById(
