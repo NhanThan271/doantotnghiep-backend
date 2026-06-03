@@ -218,9 +218,12 @@ public class ReservationServiceImpl implements ReservationService {
         }
 
         @Override
-        public List<ReservationResponse> getPendingReservations() {
-                return reservationRepository.findByStatus(ReservationStatus.PENDING)
-                                .stream()
+        public List<ReservationResponse> getReservationsByStatus(ReservationStatus status) {
+                List<Reservation> list = (status == null)
+                                ? reservationRepository.findAll()
+                                : reservationRepository.findByStatus(status);
+
+                return list.stream()
                                 .map(r -> ReservationResponse.builder()
                                                 .id(r.getId())
                                                 .userId(r.getUser() != null ? r.getUser().getId() : null)
@@ -228,14 +231,8 @@ public class ReservationServiceImpl implements ReservationService {
                                                 .phone(r.getCustomerPhone())
                                                 .email(r.getCustomerEmail())
                                                 .branchName(r.getBranch() != null ? r.getBranch().getName() : null)
-                                                .tableNumber(
-                                                                r.getTable() != null
-                                                                                ? r.getTable().getNumber()
-                                                                                : (Integer) null)
-                                                .roomNumber(
-                                                                r.getRoom() != null
-                                                                                ? r.getRoom().getNumber()
-                                                                                : (Integer) null)
+                                                .tableNumber(r.getTable() != null ? r.getTable().getNumber() : null)
+                                                .roomNumber(r.getRoom() != null ? r.getRoom().getNumber() : null)
                                                 .status(r.getStatus().name())
                                                 .checkInTime(r.getCheckInTime())
                                                 .checkOutTime(r.getCheckOutTime())

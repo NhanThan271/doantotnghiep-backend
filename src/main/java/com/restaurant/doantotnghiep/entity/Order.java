@@ -31,11 +31,11 @@ public class Order {
 
     @ManyToOne(optional = true, fetch = FetchType.EAGER)
     @JoinColumn(name = "table_id")
-    @JsonIgnoreProperties({ "hibernateLazyInitializer", "handler" })
+    @JsonIgnoreProperties({"branch", "orders", "hibernateLazyInitializer", "handler"})
     private TableEntity table;
 
     @ManyToOne(optional = true, fetch = FetchType.EAGER)
-    @JsonIgnoreProperties({ "hibernateLazyInitializer", "handler" })
+    @JsonIgnoreProperties({"branch", "orders", "hibernateLazyInitializer", "handler"})
     @JoinColumn(name = "room_id")
     private Room room;
 
@@ -46,10 +46,7 @@ public class Order {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "reservation_id")
-    @JsonIgnoreProperties({
-            "hibernateLazyInitializer",
-            "handler"
-    })
+    @JsonIgnoreProperties({"orders", "table", "room", "branch", "hibernateLazyInitializer", "handler"})
     private Reservation reservation;
 
     @Column(length = 100)

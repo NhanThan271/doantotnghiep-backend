@@ -1,5 +1,6 @@
 package com.restaurant.doantotnghiep.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.restaurant.doantotnghiep.entity.enums.Status;
 import com.restaurant.doantotnghiep.entity.enums.TableType;
 
@@ -25,6 +26,7 @@ public class TableEntity {
 
     @ManyToOne
     @JoinColumn(name = "branch_id", nullable = false)
+    @JsonIgnoreProperties({"tables", "rooms", "promotions", "ingredients", "hibernateLazyInitializer", "handler"})
     private Branch branch;
 
     @Column(nullable = false)

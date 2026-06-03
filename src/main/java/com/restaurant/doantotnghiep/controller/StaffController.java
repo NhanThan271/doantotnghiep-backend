@@ -74,4 +74,13 @@ public class StaffController {
     public Staff getById(@PathVariable Long id) {
         return service.getById(id);
     }
+
+    @PutMapping("/{id}/employment-type")
+    @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
+    public StaffDTO assignEmploymentType(
+            @PathVariable Long id,
+            @RequestParam Long employmentTypeId) {
+
+        return service.assignEmploymentType(id, employmentTypeId);
+    }
 }

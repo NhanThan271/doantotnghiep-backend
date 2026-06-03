@@ -21,4 +21,6 @@ public interface StaffService {
     List<Staff> getByStatus(StaffPosition position);
 
     List<Staff> getByBranchAndStatus(Long branchId, StaffPosition position);
+
+    StaffDTO assignEmploymentType(Long staffId, Long employmentTypeId);
 }
