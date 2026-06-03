@@ -25,12 +25,11 @@ import org.springframework.stereotype.Service;
 public class CashierSessionServiceImpl implements CashierSessionService {
         private final StaffRepository staffRepository;
         private final BranchRepository branchRepository;
-
         private final ShiftRepository shiftRepository;
         private final CashierSessionRepository cashierSessionRepository;
 
         @Override
-        @Transactional //sửa chỗ này --
+        @Transactional
         public CashierSessionResponse openSession(OpenSessionRequest request) {
 
                 Staff staff = staffRepository.findById(
