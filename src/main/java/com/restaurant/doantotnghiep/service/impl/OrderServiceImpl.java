@@ -234,6 +234,18 @@ public class OrderServiceImpl implements OrderService {
             order.setTable(table);
         }
 
+        if (order.getRoom() != null && order.getRoom().getId() != null) {
+
+            Room room = roomRepository.findById(order.getRoom().getId())
+                    .orElseThrow(() -> new RuntimeException("Room not found"));
+
+            room.setStatus(RoomStatus.OCCUPIED);
+
+            roomRepository.save(room);
+
+            order.setRoom(room);
+        }
+
         // Xử lý items: gán BranchFood, price, tính subtotal
         List<OrderItem> items = new ArrayList<>();
         for (OrderItem item : order.getItems()) {
@@ -251,8 +263,8 @@ public class OrderServiceImpl implements OrderService {
         }
 
         order.setItems(items);
-        order.recalcTotal();
-        order.setTotalAmount(applyPromotion(order));
+
+        calculateOrderTotal(order);
 
         if (order.getStatus() == null) {
             order.setStatus(OrderStatus.PENDING);
@@ -265,6 +277,21 @@ public class OrderServiceImpl implements OrderService {
 
         orderWebSocketController.sendNewOrder(saved);
         return saved;
+    }
+
+    private void calculateOrderTotal(Order order) {
+
+        order.recalcTotal();
+
+        BigDecimal total = order.getTotalAmount();
+
+        if (order.getRoom() != null) {
+            total = total.add(order.getRoom().getRoomFee());
+        }
+
+        order.setTotalAmount(total);
+
+        order.setTotalAmount(applyPromotion(order));
     }
 
     @Override
@@ -285,8 +312,7 @@ public class OrderServiceImpl implements OrderService {
         newItem.calculateSubtotal();
         order.getItems().add(newItem);
 
-        order.recalcTotal();
-        order.setTotalAmount(applyPromotion(order));
+        calculateOrderTotal(order);
 
         return orderRepository.save(order);
     }
@@ -316,8 +342,7 @@ public class OrderServiceImpl implements OrderService {
             newItem.calculateSubtotal();
             order.getItems().add(newItem);
         }
-        order.recalcTotal();
-        order.setTotalAmount(applyPromotion(order));
+        calculateOrderTotal(order);
 
         return orderRepository.save(order);
     }
@@ -331,8 +356,7 @@ public class OrderServiceImpl implements OrderService {
 
         order.setStatus(status);
         order.setUpdatedAt(LocalDateTime.now());
-        order.recalcTotal();
-        order.setTotalAmount(applyPromotion(order));
+        calculateOrderTotal(order);
 
         if (status == OrderStatus.PAID) {
             BigDecimal finalAmount = order.getTotalAmount();
@@ -489,13 +513,7 @@ public class OrderServiceImpl implements OrderService {
 
         order.setItems(orderItems);
 
-        order.recalcTotal();
-
-        if (reservation.getRoom() != null) {
-            order.setTotalAmount(
-                    order.getTotalAmount()
-                            .add(reservation.getRoom().getRoomFee()));
-        }
+        calculateOrderTotal(order);
 
         Order savedOrder = orderRepository.save(order);
 
