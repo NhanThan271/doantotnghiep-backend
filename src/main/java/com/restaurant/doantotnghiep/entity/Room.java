@@ -3,6 +3,7 @@ package com.restaurant.doantotnghiep.entity;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.restaurant.doantotnghiep.entity.enums.RoomStatus;
 
 import jakarta.persistence.*;
@@ -25,6 +26,7 @@ public class Room {
 
     @ManyToOne
     @JoinColumn(name = "branch_id", nullable = false)
+    @JsonIgnoreProperties({"tables", "rooms", "promotions", "ingredients", "hibernateLazyInitializer", "handler"})
     private Branch branch;
 
     @Column(nullable = false)

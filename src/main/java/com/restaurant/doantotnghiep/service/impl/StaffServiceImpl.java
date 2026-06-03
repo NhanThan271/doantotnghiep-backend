@@ -18,6 +18,7 @@ public class StaffServiceImpl implements StaffService {
     private final StaffRepository staffRepository;
     private final UserRepository userRepository;
     private final BranchRepository branchRepository;
+    private final EmploymentTypeRepository employmentTypeRepository;
 
     @Override
     public Staff create(Long userId, Long branchId, StaffPosition position) {
@@ -58,7 +59,8 @@ public class StaffServiceImpl implements StaffService {
                 saved.getUser().getFullName(),
                 saved.getPosition() != null ? saved.getPosition().name() : null,
                 saved.getStatus() != null ? saved.getStatus().name() : null,
-                saved.getBranch().getId());
+                saved.getBranch().getId(),
+                saved.getEmploymentType() != null ? saved.getEmploymentType().getName() : null);
     }
 
     @Override
@@ -86,7 +88,9 @@ public class StaffServiceImpl implements StaffService {
                         s.getUser().getFullName(),
                         s.getPosition() != null ? s.getPosition().name() : null,
                         s.getStatus() != null ? s.getStatus().name() : null,
-                        s.getBranch().getId()))
+                        s.getBranch().getId(),
+                        s.getEmploymentType() != null ? s.getEmploymentType().getName() : null)
+                    )
                 .collect(Collectors.toList());
     }
 
@@ -98,5 +102,30 @@ public class StaffServiceImpl implements StaffService {
     @Override
     public List<Staff> getByBranchAndStatus(Long branchId, StaffPosition status) {
         return staffRepository.findByBranchIdAndStatus(branchId, status);
+    }
+
+    @Override
+    public StaffDTO assignEmploymentType(Long staffId, Long employmentTypeId) {
+
+        Staff staff = staffRepository.findById(staffId)
+                .orElseThrow(() -> new RuntimeException("Staff not found"));
+
+        EmploymentType employmentType = employmentTypeRepository.findById(employmentTypeId)
+                .orElseThrow(() -> new RuntimeException("Employment type not found"));
+
+        staff.setEmploymentType(employmentType);
+
+        Staff saved = staffRepository.save(staff);
+
+        return new StaffDTO(
+                saved.getId(),
+                saved.getUser().getId(),
+                saved.getUser().getUsername(),
+                saved.getUser().getFullName(),
+                saved.getPosition() != null ? saved.getPosition().name() : null,
+                saved.getStatus() != null ? saved.getStatus().name() : null,
+                saved.getBranch().getId(),
+                saved.getEmploymentType() != null ? saved.getEmploymentType().getName() : null);
+
     }
 }

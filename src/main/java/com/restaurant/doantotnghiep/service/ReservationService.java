@@ -12,7 +12,7 @@ public interface ReservationService {
 
     Reservation createFullReservation(Map<String, Object> request);
 
-    List<ReservationResponse> getPendingReservations();
+    List<ReservationResponse> getReservationsByStatus(ReservationStatus status);
 
     Reservation updateStatus(Long reservationId, ReservationStatus status);
 

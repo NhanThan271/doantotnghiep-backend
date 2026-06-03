@@ -13,4 +13,5 @@ public class StaffDTO {
     private String position;
     private String status;
     private Long branchId;
+    private String employmentTypeName;
 }

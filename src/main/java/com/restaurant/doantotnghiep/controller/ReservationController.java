@@ -26,9 +26,11 @@ public class ReservationController {
         return reservationService.createFullReservation(request);
     }
 
-    @GetMapping("/pending")
-    public List<ReservationResponse> getPendingReservations() {
-        return reservationService.getPendingReservations();
+    @GetMapping("/status")
+    @PreAuthorize("hasAnyRole('MANAGER','ADMIN','EMPLOYEE')")
+    public List<ReservationResponse> getReservationsByStatus(
+            @RequestParam(required = false) ReservationStatus status) {
+        return reservationService.getReservationsByStatus(status);
     }
 
     @PutMapping("/{id}/status")
