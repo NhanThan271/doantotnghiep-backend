@@ -9,7 +9,7 @@ import java.util.List;
 
 public interface CashierSessionService {
 
-    CashierSession openSession(OpenSessionRequest request);
+    CashierSessionResponse openSession(OpenSessionRequest request);
 
     CashierSession closeSession(
             Long sessionId,

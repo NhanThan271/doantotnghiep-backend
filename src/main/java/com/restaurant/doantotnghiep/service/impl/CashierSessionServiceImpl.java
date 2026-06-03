@@ -30,8 +30,7 @@ public class CashierSessionServiceImpl implements CashierSessionService {
 
         @Override
         @Transactional
-        public CashierSession openSession(
-                        OpenSessionRequest request) {
+        public CashierSessionResponse openSession(OpenSessionRequest request) {
 
                 Staff staff = staffRepository.findById(
                                 request.getStaffId()).orElseThrow();
@@ -68,7 +67,22 @@ public class CashierSessionServiceImpl implements CashierSessionService {
                                 .status(CashierSessionStatus.OPEN)
                                 .build();
 
-                return cashierSessionRepository.save(session);
+                CashierSession saved = cashierSessionRepository.save(session);
+
+                return CashierSessionResponse.builder()
+                                .id(saved.getId())
+                                .staffId(saved.getStaff().getId())
+                                .staffName(saved.getStaff().getUser().getFullName())
+                                .branchId(saved.getBranch().getId())
+                                .branchName(saved.getBranch().getName())
+                                .openingCash(saved.getOpeningCash())
+                                .cashRevenue(saved.getCashRevenue())
+                                .transferRevenue(saved.getTransferRevenue())
+                                .totalRevenue(saved.getTotalRevenue())
+                                .totalOrders(saved.getTotalOrders())
+                                .openedAt(saved.getOpenedAt())
+                                .status(saved.getStatus())
+                                .build();
         }
 
         @Override
