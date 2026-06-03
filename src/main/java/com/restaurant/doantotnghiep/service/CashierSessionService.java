@@ -8,9 +8,13 @@ import java.math.BigDecimal;
 import java.util.List;
 
 public interface CashierSessionService {
-    CashierSessionResponse openSession(OpenSessionRequest request);
 
-        CashierSessionResponse closeSession(Long sessionId, CloseSessionRequest request);
+        // sửa chỗ này
+        CashierSessionResponse openSession(OpenSessionRequest request);
+
+        CashierSession closeSession(
+                        Long sessionId,
+                        CloseSessionRequest request);
 
         CashierSessionResponse getCurrentSession(Long staffId);
 
@@ -18,7 +22,8 @@ public interface CashierSessionService {
 
         CashierSession getById(Long id);
 
-        CashierSessionResponse getSessionResponse(Long id);
-
-        void updateRevenue(Long sessionId, BigDecimal amount, String paymentMethod);
+        void updateRevenue(
+                        Long sessionId,
+                        BigDecimal amount,
+                        String paymentMethod);
 }
