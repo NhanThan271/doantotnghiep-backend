@@ -8,8 +8,7 @@ import java.math.BigDecimal;
 import java.util.List;
 
 public interface CashierSessionService {
-
-        CashierSessionResponse openSession(OpenSessionRequest request);
+    CashierSessionResponse openSession(OpenSessionRequest request);
 
         CashierSessionResponse closeSession(Long sessionId, CloseSessionRequest request);
 

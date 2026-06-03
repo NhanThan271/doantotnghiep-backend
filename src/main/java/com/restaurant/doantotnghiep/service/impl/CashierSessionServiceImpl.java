@@ -29,10 +29,9 @@ public class CashierSessionServiceImpl implements CashierSessionService {
         private final ShiftRepository shiftRepository;
         private final CashierSessionRepository cashierSessionRepository;
 
-        // Helper method to convert Entity to DTO
-        private CashierSessionResponse toResponse(CashierSession session) {
-                if (session == null)
-                        return null;
+        @Override
+        @Transactional
+        public CashierSessionResponse openSession(OpenSessionRequest request) {
 
                 return CashierSessionResponse.builder()
                                 .id(session.getId())
@@ -80,10 +79,24 @@ public class CashierSessionServiceImpl implements CashierSessionService {
                                 .totalOrders(0)
                                 .status(CashierSessionStatus.OPEN)
                                 .build();
+          
+                CashierSession saved = cashierSessionRepository.save(session);
 
-                CashierSession savedSession = cashierSessionRepository.save(session);
-                return toResponse(savedSession);
-        }
+                return CashierSessionResponse.builder()
+                                .id(saved.getId())
+                                .staffId(saved.getStaff().getId())
+                                .staffName(saved.getStaff().getUser().getFullName())
+                                .branchId(saved.getBranch().getId())
+                                .branchName(saved.getBranch().getName())
+                                .openingCash(saved.getOpeningCash())
+                                .cashRevenue(saved.getCashRevenue())
+                                .transferRevenue(saved.getTransferRevenue())
+                                .totalRevenue(saved.getTotalRevenue())
+                                .totalOrders(saved.getTotalOrders())
+                                .openedAt(saved.getOpenedAt())
+                                .status(saved.getStatus())
+                                .build();
+
 
         @Override
         @Transactional

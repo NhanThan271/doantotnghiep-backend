@@ -7,6 +7,8 @@ import com.restaurant.doantotnghiep.repository.AttendanceRepository;
 import com.restaurant.doantotnghiep.repository.ShiftScheduleRepository;
 import com.restaurant.doantotnghiep.repository.StaffRepository;
 import com.restaurant.doantotnghiep.service.AttendanceService;
+
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -18,127 +20,129 @@ import java.util.List;
 @RequiredArgsConstructor
 public class AttendanceServiceImpl implements AttendanceService {
 
-    private final AttendanceRepository attendanceRepository;
-    private final StaffRepository staffRepository;
-    private final ShiftScheduleRepository shiftScheduleRepository;
+        private final AttendanceRepository attendanceRepository;
+        private final StaffRepository staffRepository;
+        private final ShiftScheduleRepository shiftScheduleRepository;
 
-    @Override
-    public Attendance checkIn(Long staffId, Long shiftScheduleId) {
+        @Override
+        @Transactional
+        public Attendance checkIn(Long staffId, Long shiftScheduleId) {
 
-        Staff staff = staffRepository.findById(staffId)
-                .orElseThrow(() -> new RuntimeException("Staff not found"));
+                Staff staff = staffRepository.findById(staffId)
+                                .orElseThrow(() -> new RuntimeException("Staff not found"));
 
-        ShiftSchedule schedule = shiftScheduleRepository.findById(shiftScheduleId)
-                .orElseThrow(() -> new RuntimeException("Shift schedule not found"));
+                ShiftSchedule schedule = shiftScheduleRepository.findById(shiftScheduleId)
+                                .orElseThrow(() -> new RuntimeException("Shift schedule not found"));
 
-        Attendance attendance = attendanceRepository
-                .findByStaffAndShiftSchedule(staff, schedule)
-                .orElse(null);
+                Attendance attendance = attendanceRepository
+                                .findByStaffAndShiftSchedule(staff, schedule)
+                                .orElse(null);
 
-        if (attendance == null) {
-            attendance = new Attendance();
-            attendance.setStaff(staff);
-            attendance.setShiftSchedule(schedule);
+                if (attendance == null) {
+                        attendance = new Attendance();
+                        attendance.setStaff(staff);
+                        attendance.setShiftSchedule(schedule);
+                }
+
+                if (attendance.getCheckIn() != null) {
+                        throw new RuntimeException("Already checked in");
+                }
+
+                attendance.setCheckIn(LocalDateTime.now());
+
+                if (LocalDateTime.now().isAfter(
+                                schedule.getShift().getStartTime()
+                                                .atDate(schedule.getWorkDay()))) {
+
+                        attendance.setStatus(AttendanceStatus.LATE);
+
+                } else {
+
+                        attendance.setStatus(AttendanceStatus.PRESENT);
+                }
+
+                return attendanceRepository.save(attendance);
         }
 
-        if (attendance.getCheckIn() != null) {
-            throw new RuntimeException("Already checked in");
+        @Override
+        @Transactional
+        public Attendance checkOut(Long staffId, Long shiftScheduleId) {
+
+                Staff staff = staffRepository.findById(staffId)
+                                .orElseThrow(() -> new RuntimeException("Staff not found"));
+
+                ShiftSchedule schedule = shiftScheduleRepository.findById(shiftScheduleId)
+                                .orElseThrow(() -> new RuntimeException("Shift schedule not found"));
+
+                Attendance attendance = attendanceRepository
+                                .findByStaffAndShiftSchedule(staff, schedule)
+                                .orElseThrow(() -> new RuntimeException("Not checked in"));
+
+                if (attendance.getCheckOut() != null) {
+                        throw new RuntimeException("Already checked out");
+                }
+
+                attendance.setCheckOut(LocalDateTime.now());
+
+                return attendanceRepository.save(attendance);
         }
 
-        attendance.setCheckIn(LocalDateTime.now());
+        @Override
+        public Attendance getAttendance(
+                        Long staffId,
+                        Long shiftScheduleId) {
 
-        if (LocalDateTime.now().isAfter(
-                schedule.getShift().getStartTime()
-                        .atDate(schedule.getWorkDay()))) {
+                Staff staff = staffRepository.findById(staffId)
+                                .orElseThrow(() -> new RuntimeException("Staff not found"));
 
-            attendance.setStatus(AttendanceStatus.LATE);
+                ShiftSchedule schedule = shiftScheduleRepository.findById(shiftScheduleId)
+                                .orElseThrow(() -> new RuntimeException("Shift schedule not found"));
 
-        } else {
-
-            attendance.setStatus(AttendanceStatus.PRESENT);
+                return attendanceRepository
+                                .findByStaffAndShiftSchedule(staff, schedule)
+                                .orElse(null);
         }
 
-        return attendanceRepository.save(attendance);
-    }
+        @Override
+        public MonthlyAttendanceResponse getMonthlyReport(
+                        Long staffId,
+                        int month,
+                        int year) {
 
-    @Override
-    public Attendance checkOut(Long staffId, Long shiftScheduleId) {
+                Staff staff = staffRepository.findById(staffId)
+                                .orElseThrow(() -> new RuntimeException("Staff not found"));
 
-        Staff staff = staffRepository.findById(staffId)
-                .orElseThrow(() -> new RuntimeException("Staff not found"));
+                LocalDate start = LocalDate.of(year, month, 1);
+                LocalDate end = start.withDayOfMonth(start.lengthOfMonth());
 
-        ShiftSchedule schedule = shiftScheduleRepository.findById(shiftScheduleId)
-                .orElseThrow(() -> new RuntimeException("Shift schedule not found"));
+                List<Attendance> monthlyAttendance = attendanceRepository.findByStaffAndMonth(
+                                staff,
+                                start,
+                                end);
 
-        Attendance attendance = attendanceRepository
-                .findByStaffAndShiftSchedule(staff, schedule)
-                .orElseThrow(() -> new RuntimeException("Not checked in"));
+                long present = monthlyAttendance.stream()
+                                .filter(a -> a.getStatus() == AttendanceStatus.PRESENT)
+                                .count();
 
-        if (attendance.getCheckOut() != null) {
-            throw new RuntimeException("Already checked out");
+                long late = monthlyAttendance.stream()
+                                .filter(a -> a.getStatus() == AttendanceStatus.LATE)
+                                .count();
+
+                long leave = monthlyAttendance.stream()
+                                .filter(a -> a.getStatus() == AttendanceStatus.LEAVE)
+                                .count();
+
+                MonthlyAttendanceResponse response = new MonthlyAttendanceResponse();
+
+                response.setStaffId(staffId);
+                response.setMonth(month);
+                response.setYear(year);
+
+                response.setTotalDays(monthlyAttendance.size());
+                response.setPresentDays(present);
+                response.setLateDays(late);
+                response.setLeaveDays(leave);
+
+                return response;
         }
-
-        attendance.setCheckOut(LocalDateTime.now());
-
-        return attendanceRepository.save(attendance);
-    }
-
-    @Override
-    public Attendance getAttendance(
-            Long staffId,
-            Long shiftScheduleId) {
-
-        Staff staff = staffRepository.findById(staffId)
-                .orElseThrow(() -> new RuntimeException("Staff not found"));
-
-        ShiftSchedule schedule = shiftScheduleRepository.findById(shiftScheduleId)
-                .orElseThrow(() -> new RuntimeException("Shift schedule not found"));
-
-        return attendanceRepository
-                .findByStaffAndShiftSchedule(staff, schedule)
-                .orElse(null);
-    }
-
-    @Override
-    public MonthlyAttendanceResponse getMonthlyReport(
-            Long staffId,
-            int month,
-            int year) {
-
-        Staff staff = staffRepository.findById(staffId)
-                .orElseThrow(() -> new RuntimeException("Staff not found"));
-
-        LocalDate start = LocalDate.of(year, month, 1);
-        LocalDate end = start.withDayOfMonth(start.lengthOfMonth());
-
-        List<Attendance> monthlyAttendance = attendanceRepository.findByStaffAndMonth(
-                staff,
-                start,
-                end);
-
-        long present = monthlyAttendance.stream()
-                .filter(a -> a.getStatus() == AttendanceStatus.PRESENT)
-                .count();
-
-        long late = monthlyAttendance.stream()
-                .filter(a -> a.getStatus() == AttendanceStatus.LATE)
-                .count();
-
-        long leave = monthlyAttendance.stream()
-                .filter(a -> a.getStatus() == AttendanceStatus.LEAVE)
-                .count();
-
-        MonthlyAttendanceResponse response = new MonthlyAttendanceResponse();
-
-        response.setStaffId(staffId);
-        response.setMonth(month);
-        response.setYear(year);
-
-        response.setTotalDays(monthlyAttendance.size());
-        response.setPresentDays(present);
-        response.setLateDays(late);
-        response.setLeaveDays(leave);
-
-        return response;
-    }
 }

@@ -6,6 +6,7 @@ import lombok.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.restaurant.doantotnghiep.entity.enums.AttendanceStatus;
 
 @Getter
@@ -22,10 +23,12 @@ public class Attendance {
 
     @ManyToOne
     @JoinColumn(name = "staff_id", nullable = false)
+    @JsonIgnore
     private Staff staff;
 
     @ManyToOne
     @JoinColumn(name = "shift_schedule_id", nullable = false)
+    @JsonIgnore
     private ShiftSchedule shiftSchedule;
 
     private LocalDateTime checkIn;
