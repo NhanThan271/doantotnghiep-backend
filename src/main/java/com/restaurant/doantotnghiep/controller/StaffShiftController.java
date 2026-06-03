@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/staff-shifts")
@@ -58,8 +59,11 @@ public class StaffShiftController {
 
     @GetMapping("/staff/{staffId}")
     @PreAuthorize("hasAnyRole('ADMIN','MANAGER', 'EMPLOYEE')")
-    public List<StaffShift> getByStaff(@PathVariable Long staffId) {
-        return staffShiftService.getByStaff(staffId);
+    public List<StaffShiftDTO> getByStaff(@PathVariable Long staffId) {
+        return staffShiftService.getByStaff(staffId)
+                .stream()
+                .map(staffShiftService::toDTO)
+                .collect(Collectors.toList());
     }
 
     @GetMapping("/date")
@@ -70,10 +74,13 @@ public class StaffShiftController {
 
     @GetMapping("/staff-date")
     @PreAuthorize("hasAnyRole('ADMIN','MANAGER', 'EMPLOYEE')")
-    public List<StaffShift> getByStaffAndDate(
+    public List<StaffShiftDTO> getByStaffAndDate(
             @RequestParam Long staffId,
             @RequestParam LocalDate date) {
-        return staffShiftService.getByStaffAndDate(staffId, date);
+        return staffShiftService.getByStaffAndDate(staffId, date)
+                .stream()
+                .map(staffShiftService::toDTO)
+                .collect(Collectors.toList());
     }
 
     @GetMapping("/staff/{staffId}/week")

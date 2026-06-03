@@ -24,179 +24,180 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class StaffShiftServiceImpl implements StaffShiftService {
 
-    private final StaffShiftRepository staffShiftRepository;
-    private final StaffRepository staffRepository;
-    private final ShiftRepository shiftRepository;
-    private final ShiftScheduleRepository shiftScheduleRepository;
+        private final StaffShiftRepository staffShiftRepository;
+        private final StaffRepository staffRepository;
+        private final ShiftRepository shiftRepository;
+        private final ShiftScheduleRepository shiftScheduleRepository;
 
-    @Override
-    public StaffShiftDTO assignShift(Long staffId, Long shiftId, LocalDate workDay) {
+        @Override
+        public StaffShiftDTO assignShift(Long staffId, Long shiftId, LocalDate workDay) {
 
-        // check trùng ca
-        staffShiftRepository
-                .findByStaffIdAndShiftIdAndWorkDay(staffId, shiftId, workDay)
-                .ifPresent(s -> {
-                    throw new RuntimeException("Staff already assigned to this shift");
-                });
+                // check trùng ca
+                staffShiftRepository
+                                .findByStaffIdAndShiftIdAndWorkDay(staffId, shiftId, workDay)
+                                .ifPresent(s -> {
+                                        throw new RuntimeException("Staff already assigned to this shift");
+                                });
 
-        Staff staff = staffRepository.findById(staffId)
-                .orElseThrow(() -> new RuntimeException("Staff not found"));
+                Staff staff = staffRepository.findById(staffId)
+                                .orElseThrow(() -> new RuntimeException("Staff not found"));
 
-        Shift shift = shiftRepository.findById(shiftId)
-                .orElseThrow(() -> new RuntimeException("Shift not found"));
+                Shift shift = shiftRepository.findById(shiftId)
+                                .orElseThrow(() -> new RuntimeException("Shift not found"));
 
-        StaffShift staffShift = StaffShift.builder()
-                .staff(staff)
-                .shift(shift)
-                .workDay(workDay)
-                .build();
+                StaffShift staffShift = StaffShift.builder()
+                                .staff(staff)
+                                .shift(shift)
+                                .workDay(workDay)
+                                .build();
 
-        StaffShift saved = staffShiftRepository.save(staffShift);
-        return toDTO(saved);
-    }
-
-    @Override
-    @Transactional
-    public StaffShiftDTO update(Long id, Long shiftId, LocalDate workDay) {
-        StaffShift existing = getById(id);
-
-        Shift shift = shiftRepository.findById(shiftId)
-                .orElseThrow(() -> new RuntimeException("Shift not found"));
-
-        existing.setShift(shift);
-        existing.setWorkDay(workDay);
-
-        StaffShift saved = staffShiftRepository.save(existing);
-        return toDTO(saved);
-    }
-
-    @Override
-    public void delete(Long id) {
-        staffShiftRepository.deleteById(id);
-    }
-
-    @Override
-    public StaffShift getById(Long id) {
-        return staffShiftRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("StaffShift not found"));
-    }
-
-    @Override
-    public List<StaffShift> getAll() {
-        return staffShiftRepository.findAll();
-    }
-
-    @Override
-    public List<StaffShift> getByStaff(Long staffId) {
-        return staffShiftRepository.findByStaffId(staffId);
-    }
-
-    @Override
-    public List<StaffShift> getByStaffAndDate(Long staffId, LocalDate date) {
-        return staffShiftRepository.findByStaffIdAndWorkDay(staffId, date);
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public List<StaffShiftDTO> getByDate(LocalDate date) {
-        return staffShiftRepository.findByWorkDay(date)
-                .stream()
-                .map(this::toDTO)
-                .collect(Collectors.toList());
-    }
-
-    private StaffShiftDTO toDTO(StaffShift ss) {
-        StaffShiftDTO.ShiftInfo shiftInfo = null;
-        if (ss.getShift() != null) {
-            shiftInfo = StaffShiftDTO.ShiftInfo.builder()
-                    .id(ss.getShift().getId())
-                    .name(ss.getShift().getName())
-                    .startTime(ss.getShift().getStartTime().toString())
-                    .endTime(ss.getShift().getEndTime().toString())
-                    .build();
+                StaffShift saved = staffShiftRepository.save(staffShift);
+                return toDTO(saved);
         }
 
-        StaffShiftDTO.StaffInfo staffInfo = null;
-        if (ss.getStaff() != null) {
-            StaffShiftDTO.UserInfo userInfo = null;
-            if (ss.getStaff().getUser() != null) {
-                userInfo = StaffShiftDTO.UserInfo.builder()
-                        .id(ss.getStaff().getUser().getId())
-                        .fullName(ss.getStaff().getUser().getFullName())
-                        .username(ss.getStaff().getUser().getUsername())
-                        .imageUrl(ss.getStaff().getUser().getImageUrl())
-                        .build();
-            }
-            staffInfo = StaffShiftDTO.StaffInfo.builder()
-                    .id(ss.getStaff().getId())
-                    .position(ss.getStaff().getPosition() != null
-                            ? ss.getStaff().getPosition().name()
-                            : null)
-                    .user(userInfo)
-                    .build();
+        @Override
+        @Transactional
+        public StaffShiftDTO update(Long id, Long shiftId, LocalDate workDay) {
+                StaffShift existing = getById(id);
+
+                Shift shift = shiftRepository.findById(shiftId)
+                                .orElseThrow(() -> new RuntimeException("Shift not found"));
+
+                existing.setShift(shift);
+                existing.setWorkDay(workDay);
+
+                StaffShift saved = staffShiftRepository.save(existing);
+                return toDTO(saved);
         }
 
-        return StaffShiftDTO.builder()
-                .id(ss.getId())
-                .workDay(ss.getWorkDay())
-                .shift(shiftInfo)
-                .staff(staffInfo)
-                .build();
-    }
-
-    @Override
-    public List<StaffShiftDTO> getWeeklySchedule(Long staffId, LocalDate startDate) {
-        LocalDate endDate = startDate.plusDays(6);
-        return staffShiftRepository.findByWorkDayBetween(startDate, endDate)
-                .stream()
-                .filter(ss -> ss.getStaff().getId().equals(staffId))
-                .map(this::toDTO)
-                .collect(Collectors.toList());
-    }
-
-    @Override
-    public List<WeeklyScheduleDTO> findByBranchIdAndWorkDayRange(Long branchId,
-            LocalDate startDate) {
-
-        LocalDate endDate = startDate.plusDays(6);
-
-        List<ShiftSchedule> schedules = shiftScheduleRepository.findByBranchIdAndWorkDayRange(branchId, startDate,
-                endDate);
-
-        List<WeeklyScheduleDTO> result = new ArrayList<>();
-
-        for (ShiftSchedule schedule : schedules) {
-
-            long assigned = staffShiftRepository.countByWorkDayAndShiftId(
-                    schedule.getWorkDay(),
-                    schedule.getShift().getId());
-
-            WeeklyScheduleDTO dto = new WeeklyScheduleDTO();
-
-            dto.setWorkDay(schedule.getWorkDay());
-
-            dto.setShiftId(schedule.getShift().getId());
-
-            dto.setShiftName(
-                    schedule.getShift().getName());
-
-            dto.setRequiredStaff(
-                    schedule.getRequiredStaff());
-
-            dto.setMaxStaff(
-                    schedule.getMaxStaff());
-
-            dto.setAssignedStaff(
-                    (int) assigned);
-
-            dto.setMissingStaff(
-                    Math.max(
-                            0,
-                            schedule.getRequiredStaff() - (int) assigned));
-
-            result.add(dto);
+        @Override
+        public void delete(Long id) {
+                staffShiftRepository.deleteById(id);
         }
 
-        return result;
-    }
+        @Override
+        public StaffShift getById(Long id) {
+                return staffShiftRepository.findById(id)
+                                .orElseThrow(() -> new RuntimeException("StaffShift not found"));
+        }
+
+        @Override
+        public List<StaffShift> getAll() {
+                return staffShiftRepository.findAll();
+        }
+
+        @Override
+        public List<StaffShift> getByStaff(Long staffId) {
+                return staffShiftRepository.findByStaffId(staffId);
+        }
+
+        @Override
+        public List<StaffShift> getByStaffAndDate(Long staffId, LocalDate date) {
+                return staffShiftRepository.findByStaffIdAndWorkDay(staffId, date);
+        }
+
+        @Override
+        @Transactional(readOnly = true)
+        public List<StaffShiftDTO> getByDate(LocalDate date) {
+                return staffShiftRepository.findByWorkDay(date)
+                                .stream()
+                                .map(this::toDTO)
+                                .collect(Collectors.toList());
+        }
+
+        public StaffShiftDTO toDTO(StaffShift ss) {
+                StaffShiftDTO.ShiftInfo shiftInfo = null;
+                if (ss.getShift() != null) {
+                        shiftInfo = StaffShiftDTO.ShiftInfo.builder()
+                                        .id(ss.getShift().getId())
+                                        .name(ss.getShift().getName())
+                                        .startTime(ss.getShift().getStartTime().toString())
+                                        .endTime(ss.getShift().getEndTime().toString())
+                                        .build();
+                }
+
+                StaffShiftDTO.StaffInfo staffInfo = null;
+                if (ss.getStaff() != null) {
+                        StaffShiftDTO.UserInfo userInfo = null;
+                        if (ss.getStaff().getUser() != null) {
+                                userInfo = StaffShiftDTO.UserInfo.builder()
+                                                .id(ss.getStaff().getUser().getId())
+                                                .fullName(ss.getStaff().getUser().getFullName())
+                                                .username(ss.getStaff().getUser().getUsername())
+                                                .imageUrl(ss.getStaff().getUser().getImageUrl())
+                                                .build();
+                        }
+                        staffInfo = StaffShiftDTO.StaffInfo.builder()
+                                        .id(ss.getStaff().getId())
+                                        .position(ss.getStaff().getPosition() != null
+                                                        ? ss.getStaff().getPosition().name()
+                                                        : null)
+                                        .user(userInfo)
+                                        .build();
+                }
+
+                return StaffShiftDTO.builder()
+                                .id(ss.getId())
+                                .workDay(ss.getWorkDay())
+                                .shift(shiftInfo)
+                                .staff(staffInfo)
+                                .build();
+        }
+
+        @Override
+        public List<StaffShiftDTO> getWeeklySchedule(Long staffId, LocalDate startDate) {
+                LocalDate endDate = startDate.plusDays(6);
+                return staffShiftRepository.findByWorkDayBetween(startDate, endDate)
+                                .stream()
+                                .filter(ss -> ss.getStaff().getId().equals(staffId))
+                                .map(this::toDTO)
+                                .collect(Collectors.toList());
+        }
+
+        @Override
+        public List<WeeklyScheduleDTO> findByBranchIdAndWorkDayRange(Long branchId,
+                        LocalDate startDate) {
+
+                LocalDate endDate = startDate.plusDays(6);
+
+                List<ShiftSchedule> schedules = shiftScheduleRepository.findByBranchIdAndWorkDayRange(branchId,
+                                startDate,
+                                endDate);
+
+                List<WeeklyScheduleDTO> result = new ArrayList<>();
+
+                for (ShiftSchedule schedule : schedules) {
+
+                        long assigned = staffShiftRepository.countByWorkDayAndShiftId(
+                                        schedule.getWorkDay(),
+                                        schedule.getShift().getId());
+
+                        WeeklyScheduleDTO dto = new WeeklyScheduleDTO();
+
+                        dto.setWorkDay(schedule.getWorkDay());
+
+                        dto.setShiftId(schedule.getShift().getId());
+
+                        dto.setShiftName(
+                                        schedule.getShift().getName());
+
+                        dto.setRequiredStaff(
+                                        schedule.getRequiredStaff());
+
+                        dto.setMaxStaff(
+                                        schedule.getMaxStaff());
+
+                        dto.setAssignedStaff(
+                                        (int) assigned);
+
+                        dto.setMissingStaff(
+                                        Math.max(
+                                                        0,
+                                                        schedule.getRequiredStaff() - (int) assigned));
+
+                        result.add(dto);
+                }
+
+                return result;
+        }
 }
