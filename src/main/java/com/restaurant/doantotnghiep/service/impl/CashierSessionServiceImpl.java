@@ -25,6 +25,7 @@ import org.springframework.stereotype.Service;
 public class CashierSessionServiceImpl implements CashierSessionService {
         private final StaffRepository staffRepository;
         private final BranchRepository branchRepository;
+        
         private final ShiftRepository shiftRepository;
         private final CashierSessionRepository cashierSessionRepository;
 
