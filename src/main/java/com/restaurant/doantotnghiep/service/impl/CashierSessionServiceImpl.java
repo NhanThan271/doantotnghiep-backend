@@ -26,11 +26,12 @@ public class CashierSessionServiceImpl implements CashierSessionService {
 
         private final StaffRepository staffRepository;
         private final BranchRepository branchRepository;
+
         private final ShiftRepository shiftRepository;
         private final CashierSessionRepository cashierSessionRepository;
 
         @Override
-        @Transactional
+        @Transactional //sửa chỗ này --
         public CashierSessionResponse openSession(OpenSessionRequest request) {
 
                 return CashierSessionResponse.builder()

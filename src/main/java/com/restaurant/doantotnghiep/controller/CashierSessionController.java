@@ -42,6 +42,7 @@ public class CashierSessionController {
                 return ResponseEntity.ok(service.getHistory());
         }
 
+        // sửa chỗ này --
         @GetMapping("/current/{staffId}")
         @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
         public ResponseEntity<CashierSessionResponse> current(@PathVariable Long staffId) {
