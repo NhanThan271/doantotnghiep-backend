@@ -1,6 +1,5 @@
 package com.restaurant.doantotnghiep.controller;
 
-import com.restaurant.doantotnghiep.dto.CashierSessionResponse;
 import com.restaurant.doantotnghiep.dto.CloseSessionRequest;
 import com.restaurant.doantotnghiep.dto.OpenSessionRequest;
 import com.restaurant.doantotnghiep.service.CashierSessionService;
@@ -18,34 +17,43 @@ public class CashierSessionController {
 
         @PostMapping("/open")
         @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
-        public ResponseEntity<CashierSessionResponse> open(@RequestBody OpenSessionRequest request) {
-                return ResponseEntity.ok(service.openSession(request));
+        public ResponseEntity<?> open(
+                        @RequestBody OpenSessionRequest request) {
+                return ResponseEntity.ok(
+                                service.openSession(request));
         }
 
         @PostMapping("/{id}/close")
         @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
-        public ResponseEntity<CashierSessionResponse> close(
+        public ResponseEntity<?> close(
                         @PathVariable Long id,
                         @RequestBody CloseSessionRequest request) {
-                return ResponseEntity.ok(service.closeSession(id, request));
+                return ResponseEntity.ok(
+                                service.closeSession(id, request));
         }
 
         @GetMapping("/{id}")
         @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
-        public ResponseEntity<CashierSessionResponse> detail(@PathVariable Long id) {
-                return ResponseEntity.ok(service.getSessionResponse(id));
+        public ResponseEntity<?> detail(
+                        @PathVariable Long id) {
+                return ResponseEntity.ok(
+                                service.getById(id));
         }
 
         @GetMapping
         @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
         public ResponseEntity<?> history() {
-                return ResponseEntity.ok(service.getHistory());
+                return ResponseEntity.ok(
+                                service.getHistory());
         }
 
-        // sửa chỗ này --
         @GetMapping("/current/{staffId}")
         @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
-        public ResponseEntity<CashierSessionResponse> current(@PathVariable Long staffId) {
-                return ResponseEntity.ok(service.getCurrentSession(staffId));
+        public ResponseEntity<?> current(
+                        @PathVariable Long staffId) {
+
+                return ResponseEntity.ok(
+                                service.getCurrentSession(staffId));
         }
+
 }
