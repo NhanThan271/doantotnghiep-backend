@@ -9,26 +9,28 @@ import java.util.List;
 
 public interface StaffShiftService {
 
-    StaffShiftDTO assignShift(Long staffId, Long shiftId, LocalDate workDay);
+        StaffShiftDTO assignShift(Long staffId, Long shiftId, LocalDate workDay);
 
-    StaffShiftDTO update(Long id, Long shiftId, LocalDate workDay);
+        StaffShiftDTO update(Long id, Long shiftId, LocalDate workDay);
 
-    void delete(Long id);
+        void delete(Long id);
 
-    StaffShift getById(Long id);
+        StaffShift getById(Long id);
 
-    List<StaffShift> getAll();
+        List<StaffShift> getAll();
 
-    List<StaffShift> getByStaff(Long staffId);
+        List<StaffShift> getByStaff(Long staffId);
 
-    List<StaffShift> getByStaffAndDate(Long staffId, LocalDate date);
+        List<StaffShift> getByStaffAndDate(Long staffId, LocalDate date);
 
-    List<StaffShiftDTO> getByDate(LocalDate date);
+        List<StaffShiftDTO> getByDate(LocalDate date);
 
-    List<StaffShiftDTO> getWeeklySchedule(
-            Long staffId,
-            LocalDate startDate);
+        List<StaffShiftDTO> getWeeklySchedule(
+                        Long staffId,
+                        LocalDate startDate);
 
-    List<WeeklyScheduleDTO> findByBranchIdAndWorkDayRange(Long branchId,
-            LocalDate startDate);
+        List<WeeklyScheduleDTO> findByBranchIdAndWorkDayRange(Long branchId,
+                        LocalDate startDate);
+
+        StaffShiftDTO toDTO(StaffShift staffShift);
 }
