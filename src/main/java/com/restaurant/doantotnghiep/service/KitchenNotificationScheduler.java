@@ -29,8 +29,8 @@ public class KitchenNotificationScheduler {
         @Scheduled(fixedRate = 5000)
         public void notifyKitchen() {
 
-                LocalDateTime from = LocalDateTime.now().plusSeconds(20);
-                LocalDateTime to = LocalDateTime.now().plusSeconds(25);
+                LocalDateTime from = LocalDateTime.now().plusMinutes(40);
+                LocalDateTime to = from.plusMinutes(1);
 
                 List<Reservation> upcoming = reservationRepository
                                 .findByCheckInTimeBetweenAndStatus(from, to, ReservationStatus.CONFIRMED);

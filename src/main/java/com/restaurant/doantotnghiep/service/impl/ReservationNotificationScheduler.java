@@ -22,80 +22,79 @@ import org.springframework.web.client.RestTemplate;
 @Component
 @RequiredArgsConstructor
 public class ReservationNotificationScheduler {
-    private final ReservationRepository reservationRepository;
-    private final RestTemplate restTemplate;
+        private final ReservationRepository reservationRepository;
+        private final RestTemplate restTemplate;
 
-    @Scheduled(fixedRate = 60000)
-    @Transactional
-    public void notifyCashierAndStaff() {
+        @Scheduled(fixedRate = 60000)
+        @Transactional
+        public void notifyCashierAndStaff() {
 
-        LocalDateTime from = LocalDateTime.now().plusHours(4);
+                LocalDateTime now = LocalDateTime.now();
 
-        LocalDateTime to = from.plusMinutes(5);
+                LocalDateTime fourHoursLater = now.plusHours(4);
 
-        List<Reservation> reservations = reservationRepository
-                .findByCheckInTimeBetweenAndStatus(
-                        from,
-                        to,
-                        ReservationStatus.CONFIRMED);
+                List<Reservation> reservations = reservationRepository.findByCheckInTimeBetweenAndStatus(
+                                now,
+                                fourHoursLater,
+                                ReservationStatus.CONFIRMED);
 
-        for (Reservation reservation : reservations) {
+                for (Reservation reservation : reservations) {
 
-            if (Boolean.TRUE.equals(
-                    reservation.getNotifiedFourHours())) {
-                continue;
-            }
+                        if (Boolean.TRUE.equals(
+                                        reservation.getNotifiedFourHours())) {
+                                continue;
+                        }
 
-            String location;
+                        String location;
 
-            if (reservation.getTable() != null) {
+                        if (reservation.getTable() != null) {
 
-                location = "Bàn "
-                        + reservation.getTable().getNumber();
+                                location = "Bàn "
+                                                + reservation.getTable().getNumber();
 
-            } else {
+                        } else {
 
-                location = "Phòng "
-                        + reservation.getRoom().getNumber();
-            }
+                                location = "Phòng "
+                                                + reservation.getRoom().getNumber();
+                        }
 
-            String message = "Khách "
-                    + reservation.getCustomerName()
-                    + " sẽ đến lúc "
-                    + reservation.getCheckInTime()
-                    + " tại "
-                    + location;
+                        String message = "Khách "
+                                        + reservation.getCustomerName()
+                                        + " sẽ đến lúc "
+                                        + reservation.getCheckInTime()
+                                        + " tại "
+                                        + location;
 
-            Map<String, Object> payload = new HashMap<>();
+                        Map<String, Object> payload = new HashMap<>();
 
-            payload.put("type", "UPCOMING_RESERVATION");
-            payload.put("message", message);
-            payload.put("reservationId", reservation.getId());
-            payload.put("branchId",
-                    reservation.getBranch().getId());
+                        payload.put("type", "UPCOMING_RESERVATION");
+                        payload.put("message", message);
+                        payload.put("reservationId", reservation.getId());
+                        payload.put("branchId",
+                                        reservation.getBranch().getId());
 
-            payload.put("customerName",
-                    reservation.getCustomerName());
+                        payload.put("customerName",
+                                        reservation.getCustomerName());
 
-            payload.put("checkInTime",
-                    reservation.getCheckInTime());
+                        payload.put("checkInTime",
+                                        reservation.getCheckInTime());
 
-            payload.put("location",
-                    location);
+                        payload.put("location",
+                                        location);
 
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
+                        HttpHeaders headers = new HttpHeaders();
+                        headers.setContentType(MediaType.APPLICATION_JSON);
 
-            HttpEntity<Map<String, Object>> entity = new HttpEntity<>(payload, headers);
+                        HttpEntity<Map<String, Object>> entity = new HttpEntity<>(payload, headers);
 
-            restTemplate.postForEntity(
-                    "http://localhost:3001/notify-staff-reservation",
-                    entity,
-                    Map.class);
+                        restTemplate.postForEntity(
+                                        "http://localhost:3001/notify-staff-reservation",
+                                        entity,
+                                        Map.class);
 
-            reservation.setNotifiedFourHours(true);
+                        reservation.setNotifiedFourHours(true);
+                }
+
+                reservationRepository.saveAll(reservations);
         }
-
-        reservationRepository.saveAll(reservations);
-    }
 }
