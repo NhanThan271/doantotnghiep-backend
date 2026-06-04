@@ -19,42 +19,37 @@ public class CashierSessionController {
 
         @PostMapping("/open")
         @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
-        public ResponseEntity<?> open(
-                        @RequestBody OpenSessionRequest request) {
-                return ResponseEntity.ok(
-                                service.openSession(request));
+        public ResponseEntity<CashierSessionResponse> open(@RequestBody OpenSessionRequest request) {
+                return ResponseEntity.ok(service.openSession(request));
         }
 
         @PostMapping("/{id}/close")
         @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
-        public ResponseEntity<?> close(
+        public ResponseEntity<CashierSessionResponse> close(
                         @PathVariable Long id,
                         @RequestBody CloseSessionRequest request) {
-                return ResponseEntity.ok(
-                                service.closeSession(id, request));
+                return ResponseEntity.ok(service.closeSessionAndReturnResponse(id, request));
         }
 
         @GetMapping("/{id}")
         @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
-        public ResponseEntity<?> detail(@PathVariable Long id) {
-                CashierSessionResponse response = service.getByIdResponse(id);
-                return ResponseEntity.ok(response);
+        public ResponseEntity<CashierSessionResponse> detail(@PathVariable Long id) {
+                return ResponseEntity.ok(service.getByIdResponse(id));
         }
 
         @GetMapping
         @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
-        public ResponseEntity<?> history() {
-                List<CashierSessionResponse> responses = service.getHistoryResponse();
-                return ResponseEntity.ok(responses);
+        public ResponseEntity<List<CashierSessionResponse>> history() {
+                return ResponseEntity.ok(service.getHistoryResponse());
         }
 
         @GetMapping("/current/{staffId}")
         @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
-        public ResponseEntity<?> current(
-                        @PathVariable Long staffId) {
-
-                return ResponseEntity.ok(
-                                service.getCurrentSession(staffId));
+        public ResponseEntity<CashierSessionResponse> current(@PathVariable Long staffId) {
+                CashierSessionResponse response = service.getCurrentSession(staffId);
+                if (response == null) {
+                        return ResponseEntity.noContent().build();
+                }
+                return ResponseEntity.ok(response);
         }
-
 }

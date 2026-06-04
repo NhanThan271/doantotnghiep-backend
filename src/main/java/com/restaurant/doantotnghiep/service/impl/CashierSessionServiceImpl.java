@@ -88,6 +88,28 @@ public class CashierSessionServiceImpl implements CashierSessionService {
 
         @Override
         @Transactional
+        public CashierSessionResponse closeSessionAndReturnResponse(Long sessionId, CloseSessionRequest request) {
+                CashierSession session = closeSession(sessionId, request);
+
+                return CashierSessionResponse.builder()
+                                .id(session.getId())
+                                .staffId(session.getStaff().getId())
+                                .staffName(session.getStaff().getUser().getFullName())
+                                .branchId(session.getBranch().getId())
+                                .branchName(session.getBranch().getName())
+                                .openingCash(session.getOpeningCash())
+                                .cashRevenue(session.getCashRevenue())
+                                .transferRevenue(session.getTransferRevenue())
+                                .totalRevenue(session.getTotalRevenue())
+                                .totalOrders(session.getTotalOrders())
+                                .openedAt(session.getOpenedAt())
+                                .closedAt(session.getClosedAt())
+                                .status(session.getStatus())
+                                .build();
+        }
+
+        @Override
+        @Transactional
         public CashierSession closeSession(
                         Long sessionId,
                         CloseSessionRequest request) {
@@ -214,7 +236,6 @@ public class CashierSessionServiceImpl implements CashierSessionService {
                                 .build();
         }
 
-        // ✅ THÊM METHOD NÀY
         @Override
         public List<CashierSessionResponse> getHistoryResponse() {
                 return cashierSessionRepository.findAllByOrderByOpenedAtDesc()
