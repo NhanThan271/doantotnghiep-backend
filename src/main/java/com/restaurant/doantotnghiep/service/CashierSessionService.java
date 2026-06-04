@@ -15,6 +15,8 @@ public interface CashierSessionService {
                         Long sessionId,
                         CloseSessionRequest request);
 
+        CashierSessionResponse closeSessionAndReturnResponse(Long sessionId, CloseSessionRequest request);
+
         CashierSessionResponse getCurrentSession(Long staffId);
 
         List<CashierSession> getHistory();
