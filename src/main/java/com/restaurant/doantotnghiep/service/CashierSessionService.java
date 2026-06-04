@@ -9,7 +9,6 @@ import java.util.List;
 
 public interface CashierSessionService {
 
-        // sửa chỗ này
         CashierSessionResponse openSession(OpenSessionRequest request);
 
         CashierSession closeSession(
@@ -26,4 +25,8 @@ public interface CashierSessionService {
                         Long sessionId,
                         BigDecimal amount,
                         String paymentMethod);
+
+        CashierSessionResponse getByIdResponse(Long id);
+
+        List<CashierSessionResponse> getHistoryResponse();
 }

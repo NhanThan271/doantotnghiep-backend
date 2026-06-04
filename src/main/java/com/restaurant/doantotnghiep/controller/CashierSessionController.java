@@ -1,5 +1,6 @@
 package com.restaurant.doantotnghiep.controller;
 
+import com.restaurant.doantotnghiep.dto.CashierSessionResponse;
 import com.restaurant.doantotnghiep.dto.CloseSessionRequest;
 import com.restaurant.doantotnghiep.dto.OpenSessionRequest;
 import com.restaurant.doantotnghiep.service.CashierSessionService;
@@ -7,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.security.access.prepost.PreAuthorize;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/cashier-sessions")
@@ -34,17 +36,16 @@ public class CashierSessionController {
 
         @GetMapping("/{id}")
         @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
-        public ResponseEntity<?> detail(
-                        @PathVariable Long id) {
-                return ResponseEntity.ok(
-                                service.getById(id));
+        public ResponseEntity<?> detail(@PathVariable Long id) {
+                CashierSessionResponse response = service.getByIdResponse(id);
+                return ResponseEntity.ok(response);
         }
 
         @GetMapping
         @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
         public ResponseEntity<?> history() {
-                return ResponseEntity.ok(
-                                service.getHistory());
+                List<CashierSessionResponse> responses = service.getHistoryResponse();
+                return ResponseEntity.ok(responses);
         }
 
         @GetMapping("/current/{staffId}")
