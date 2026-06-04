@@ -2,7 +2,8 @@ package com.restaurant.doantotnghiep.service.impl;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-
+import java.util.List;
+import java.util.stream.Collectors;
 import com.restaurant.doantotnghiep.dto.CashierSessionResponse;
 import com.restaurant.doantotnghiep.dto.CloseSessionRequest;
 import com.restaurant.doantotnghiep.dto.OpenSessionRequest;
@@ -189,6 +190,51 @@ public class CashierSessionServiceImpl implements CashierSessionService {
         @Override
         public java.util.List<CashierSession> getHistory() {
                 return cashierSessionRepository.findAllByOrderByOpenedAtDesc();
+        }
+
+        @Override
+        public CashierSessionResponse getByIdResponse(Long id) {
+                CashierSession session = cashierSessionRepository.findById(id)
+                                .orElseThrow();
+
+                return CashierSessionResponse.builder()
+                                .id(session.getId())
+                                .staffId(session.getStaff().getId())
+                                .staffName(session.getStaff().getUser().getFullName())
+                                .branchId(session.getBranch().getId())
+                                .branchName(session.getBranch().getName())
+                                .openingCash(session.getOpeningCash())
+                                .cashRevenue(session.getCashRevenue())
+                                .transferRevenue(session.getTransferRevenue())
+                                .totalRevenue(session.getTotalRevenue())
+                                .totalOrders(session.getTotalOrders())
+                                .openedAt(session.getOpenedAt())
+                                .closedAt(session.getClosedAt())
+                                .status(session.getStatus())
+                                .build();
+        }
+
+        // ✅ THÊM METHOD NÀY
+        @Override
+        public List<CashierSessionResponse> getHistoryResponse() {
+                return cashierSessionRepository.findAllByOrderByOpenedAtDesc()
+                                .stream()
+                                .map(session -> CashierSessionResponse.builder()
+                                                .id(session.getId())
+                                                .staffId(session.getStaff().getId())
+                                                .staffName(session.getStaff().getUser().getFullName())
+                                                .branchId(session.getBranch().getId())
+                                                .branchName(session.getBranch().getName())
+                                                .openingCash(session.getOpeningCash())
+                                                .cashRevenue(session.getCashRevenue())
+                                                .transferRevenue(session.getTransferRevenue())
+                                                .totalRevenue(session.getTotalRevenue())
+                                                .totalOrders(session.getTotalOrders())
+                                                .openedAt(session.getOpenedAt())
+                                                .closedAt(session.getClosedAt())
+                                                .status(session.getStatus())
+                                                .build())
+                                .collect(Collectors.toList());
         }
 
 }
