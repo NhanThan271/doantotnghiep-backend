@@ -120,7 +120,7 @@ public class PaymentService {
             } else if (reservation.getRoom() != null) {
                 tableInfo = "Phòng " + reservation.getRoom().getNumber();
             }
-            
+
             List<ReservationItem> items = reservationItemRepository
                     .findByReservationId(reservation.getId());
             emailService.sendReservationPaymentEmail(
@@ -131,7 +131,7 @@ public class PaymentService {
                     reservation.getCheckInTime().format(formatter),
                     reservation.getCheckOutTime().format(formatter),
                     "RES" + reservation.getId(),
-                    reservation.getDepositAmount(),
+                    payment.getTotalAmount().doubleValue(),
                     items);
         }
 

@@ -58,4 +58,39 @@ public class EmailService {
             e.printStackTrace();
         }
     }
+
+    public void sendReservationCreatedEmail(
+            String email,
+            String customerName,
+            String branchName,
+            String seatInfo,
+            String checkIn,
+            String checkOut,
+            String reservationCode,
+            List<ReservationItem> items) {
+        try {
+            Context context = new Context();
+            context.setVariable("name", customerName);
+            context.setVariable("branch", branchName);
+            context.setVariable("table", seatInfo);
+            context.setVariable("checkIn", checkIn);
+            context.setVariable("checkOut", checkOut);
+            context.setVariable("code", reservationCode);
+            context.setVariable("items", items);
+
+            String html = templateEngine.process("email/reservation", context);
+
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setTo(email);
+            helper.setSubject("Xác nhận đặt bàn");
+            helper.setText(html, true);
+
+            mailSender.send(message);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 }

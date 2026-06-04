@@ -20,6 +20,7 @@ import com.restaurant.doantotnghiep.repository.ReservationRepository;
 import com.restaurant.doantotnghiep.repository.RoomRepository;
 import com.restaurant.doantotnghiep.repository.TableRepository;
 import com.restaurant.doantotnghiep.repository.UserRepository;
+import com.restaurant.doantotnghiep.service.EmailService;
 import com.restaurant.doantotnghiep.service.KitchenOrderService;
 import com.restaurant.doantotnghiep.service.ReservationService;
 
@@ -47,7 +48,7 @@ public class ReservationServiceImpl implements ReservationService {
         private final RoomRepository roomRepository;
         private final BranchFoodRepository branchFoodRepository;
         private final ReservationItemRepository reservationItemRepository;
-        private final KitchenOrderService kitchenOrderService;
+        private final EmailService emailService;
         private final OrderServiceImpl orderService;
 
         @Transactional
@@ -214,7 +215,44 @@ public class ReservationServiceImpl implements ReservationService {
                                         "Tiền cọc không được lớn hơn tổng tiền");
                 }
 
-                return reservationRepository.save(reservation);
+                Reservation savedReservation = reservationRepository.save(reservation);
+
+                sendReservationCreatedEmail(savedReservation);
+
+                return savedReservation;
+        }
+
+        private void sendReservationCreatedEmail(Reservation reservation) {
+
+                if (reservation.getCustomerEmail() == null
+                                || reservation.getCustomerEmail().isBlank()) {
+                        return;
+                }
+
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+
+                String seatInfo = "";
+
+                if (reservation.getTable() != null) {
+                        seatInfo = "Bàn " + reservation.getTable().getNumber();
+                }
+
+                if (reservation.getRoom() != null) {
+                        seatInfo = "Phòng " + reservation.getRoom().getNumber();
+                }
+
+                List<ReservationItem> items = reservationItemRepository.findByReservationId(
+                                reservation.getId());
+
+                emailService.sendReservationCreatedEmail(
+                                reservation.getCustomerEmail(),
+                                reservation.getCustomerName(),
+                                reservation.getBranch().getName(),
+                                seatInfo,
+                                reservation.getCheckInTime().format(formatter),
+                                reservation.getCheckOutTime().format(formatter),
+                                "RES" + reservation.getId(),
+                                items);
         }
 
         @Override

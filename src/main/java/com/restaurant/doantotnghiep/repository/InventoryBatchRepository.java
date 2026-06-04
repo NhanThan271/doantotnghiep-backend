@@ -1,8 +1,6 @@
 package com.restaurant.doantotnghiep.repository;
 
-import com.restaurant.doantotnghiep.dto.InventoryBatchDTO;
 import com.restaurant.doantotnghiep.entity.InventoryBatch;
-import com.restaurant.doantotnghiep.entity.WarehouseInventory;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
