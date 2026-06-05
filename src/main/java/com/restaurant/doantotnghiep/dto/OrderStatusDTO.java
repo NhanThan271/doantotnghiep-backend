@@ -18,6 +18,7 @@ public class OrderStatusDTO {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private TableDTO table;
+    private RoomDTO room;
     private PromotionDTO promotion;
     private List<OrderItemDTO> items;
 
@@ -39,6 +40,17 @@ public class OrderStatusDTO {
         private Long id;
         private Integer number;
         private String status;
+    }
+
+    @Data
+    @Builder
+    public static class RoomDTO {
+        private Long id;
+        private Integer number;
+        private String area;
+        private Integer capacity;
+        private String status;
+        private BigDecimal roomFee;
     }
 
     @Data
