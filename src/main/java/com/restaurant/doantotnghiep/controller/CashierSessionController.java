@@ -8,6 +8,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.security.access.prepost.PreAuthorize;
+
+import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
@@ -51,5 +53,42 @@ public class CashierSessionController {
                         return ResponseEntity.noContent().build();
                 }
                 return ResponseEntity.ok(response);
+        }
+
+        @GetMapping("/branch/{branchId}")
+        @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
+        public ResponseEntity<?> getByBranch(
+                        @PathVariable Long branchId) {
+
+                return ResponseEntity.ok(
+                                service.getByBranch(branchId));
+        }
+
+        @GetMapping("/report")
+        @PreAuthorize("hasRole('ADMIN')")
+        public ResponseEntity<?> report() {
+
+                return ResponseEntity.ok(
+                                service.getReport());
+        }
+
+        @GetMapping("/report/branches")
+        @PreAuthorize("hasRole('ADMIN')")
+        public ResponseEntity<?> branchReport() {
+
+                return ResponseEntity.ok(
+                                service.getBranchReports());
+        }
+
+        @GetMapping("/report/date")
+        @PreAuthorize("hasRole('ADMIN')")
+        public ResponseEntity<?> reportByDate(
+                        @RequestParam String from,
+                        @RequestParam String to) {
+
+                return ResponseEntity.ok(
+                                service.getReportByDate(
+                                                LocalDateTime.parse(from),
+                                                LocalDateTime.parse(to)));
         }
 }
