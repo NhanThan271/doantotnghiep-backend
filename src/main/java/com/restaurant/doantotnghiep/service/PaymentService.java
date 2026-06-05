@@ -1,9 +1,12 @@
 package com.restaurant.doantotnghiep.service;
 
+import com.restaurant.doantotnghiep.dto.CashierSessionResponse;
 import com.restaurant.doantotnghiep.entity.Order;
 import com.restaurant.doantotnghiep.entity.Payment;
 import com.restaurant.doantotnghiep.entity.Reservation;
 import com.restaurant.doantotnghiep.entity.ReservationItem;
+import com.restaurant.doantotnghiep.entity.Staff;
+import com.restaurant.doantotnghiep.entity.User;
 import com.restaurant.doantotnghiep.entity.enums.OrderStatus;
 import com.restaurant.doantotnghiep.entity.enums.PaymentStatus;
 import com.restaurant.doantotnghiep.entity.enums.PaymentType;
@@ -11,6 +14,7 @@ import com.restaurant.doantotnghiep.repository.OrderRepository;
 import com.restaurant.doantotnghiep.repository.PaymentRepository;
 import com.restaurant.doantotnghiep.repository.ReservationItemRepository;
 import com.restaurant.doantotnghiep.repository.ReservationRepository;
+import com.restaurant.doantotnghiep.repository.StaffRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -38,6 +42,12 @@ public class PaymentService {
     @Autowired
     private ReservationItemRepository reservationItemRepository;
 
+    @Autowired
+    private CashierSessionService cashierSessionService;
+
+    @Autowired
+    private StaffRepository staffRepository;
+
     public Payment createPayment(Long orderId, Payment payment) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new RuntimeException("Order not found"));
@@ -52,7 +62,27 @@ public class PaymentService {
         order.setPayment(payment);
 
         orderRepository.save(order);
-        return paymentRepository.save(payment);
+        Payment saved = paymentRepository.save(payment); 
+        
+        try {
+            User employee = order.getEmployee();
+            if (employee != null) {
+                Staff staff = staffRepository.findByUserId(employee.getId()).orElse(null);
+                if (staff != null) {
+                    CashierSessionResponse session = cashierSessionService.getCurrentSession(staff.getId());
+                    if (session != null && saved.getTotalAmount() != null) {
+                        cashierSessionService.updateRevenue(
+                                session.getId(),
+                                saved.getTotalAmount(),
+                                "CASH");
+                    }
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("Lỗi cập nhật ca thu ngân: " + e.getMessage());
+        }
+
+        return saved;
     }
 
     public Payment getPaymentByOrder(Long orderId) {

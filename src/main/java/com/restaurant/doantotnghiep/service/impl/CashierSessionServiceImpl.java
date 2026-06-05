@@ -387,4 +387,12 @@ public class CashierSessionServiceImpl implements CashierSessionService {
                                 .status(session.getStatus())
                                 .build();
         }
+
+        @Override
+        public CashierSessionResponse getCurrentSessionByBranch(Long branchId) {
+                return cashierSessionRepository
+                                .findByBranchIdAndStatus(branchId, CashierSessionStatus.OPEN)
+                                .map(this::toResponse)
+                                .orElse(null);
+        }
 }
