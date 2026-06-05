@@ -16,6 +16,8 @@ import com.restaurant.doantotnghiep.repository.CashierSessionRepository;
 import com.restaurant.doantotnghiep.repository.ShiftRepository;
 import com.restaurant.doantotnghiep.repository.StaffRepository;
 import com.restaurant.doantotnghiep.service.CashierSessionService;
+import com.restaurant.doantotnghiep.dto.BranchReportResponse;
+import com.restaurant.doantotnghiep.dto.CashierReportResponse;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -258,4 +260,131 @@ public class CashierSessionServiceImpl implements CashierSessionService {
                                 .collect(Collectors.toList());
         }
 
+        @Override
+        public List<CashierSessionResponse> getByBranch(Long branchId) {
+
+                return cashierSessionRepository
+                                .findByBranchIdOrderByOpenedAtDesc(branchId)
+                                .stream()
+                                .map(this::toResponse)
+                                .toList();
+        }
+
+        @Override
+        public CashierReportResponse getReport() {
+
+                List<CashierSession> sessions = cashierSessionRepository.findAll();
+
+                return CashierReportResponse.builder()
+                                .totalRevenue(
+                                                sessions.stream()
+                                                                .map(CashierSession::getTotalRevenue)
+                                                                .reduce(BigDecimal.ZERO, BigDecimal::add))
+                                .cashRevenue(
+                                                sessions.stream()
+                                                                .map(CashierSession::getCashRevenue)
+                                                                .reduce(BigDecimal.ZERO, BigDecimal::add))
+                                .transferRevenue(
+                                                sessions.stream()
+                                                                .map(CashierSession::getTransferRevenue)
+                                                                .reduce(BigDecimal.ZERO, BigDecimal::add))
+                                .totalOrders(
+                                                sessions.stream()
+                                                                .mapToInt(CashierSession::getTotalOrders)
+                                                                .sum())
+                                .build();
+        }
+
+        @Override
+        public CashierReportResponse getReportByDate(
+                        LocalDateTime from,
+                        LocalDateTime to) {
+
+                List<CashierSession> sessions = cashierSessionRepository
+                                .findByOpenedAtBetween(from, to);
+
+                return CashierReportResponse.builder()
+                                .totalRevenue(
+                                                sessions.stream()
+                                                                .map(CashierSession::getTotalRevenue)
+                                                                .reduce(BigDecimal.ZERO, BigDecimal::add))
+                                .cashRevenue(
+                                                sessions.stream()
+                                                                .map(CashierSession::getCashRevenue)
+                                                                .reduce(BigDecimal.ZERO, BigDecimal::add))
+                                .transferRevenue(
+                                                sessions.stream()
+                                                                .map(CashierSession::getTransferRevenue)
+                                                                .reduce(BigDecimal.ZERO, BigDecimal::add))
+                                .totalOrders(
+                                                sessions.stream()
+                                                                .mapToInt(CashierSession::getTotalOrders)
+                                                                .sum())
+                                .build();
+        }
+
+        @Override
+        public List<BranchReportResponse> getBranchReports() {
+
+                return cashierSessionRepository.findAll()
+                                .stream()
+                                .collect(Collectors.groupingBy(
+                                                s -> s.getBranch().getId()))
+                                .values()
+                                .stream()
+                                .map(list -> {
+
+                                        CashierSession first = list.get(0);
+
+                                        return BranchReportResponse.builder()
+                                                        .branchId(first.getBranch().getId())
+                                                        .branchName(first.getBranch().getName())
+                                                        .totalRevenue(
+                                                                        list.stream()
+                                                                                        .map(CashierSession::getTotalRevenue)
+                                                                                        .reduce(BigDecimal.ZERO,
+                                                                                                        BigDecimal::add))
+                                                        .cashRevenue(
+                                                                        list.stream()
+                                                                                        .map(CashierSession::getCashRevenue)
+                                                                                        .reduce(BigDecimal.ZERO,
+                                                                                                        BigDecimal::add))
+                                                        .transferRevenue(
+                                                                        list.stream()
+                                                                                        .map(CashierSession::getTransferRevenue)
+                                                                                        .reduce(BigDecimal.ZERO,
+                                                                                                        BigDecimal::add))
+                                                        .totalOrders(
+                                                                        list.stream()
+                                                                                        .mapToInt(CashierSession::getTotalOrders)
+                                                                                        .sum())
+                                                        .build();
+                                })
+                                .toList();
+        }
+
+        private CashierSessionResponse toResponse(
+                        CashierSession session) {
+
+                return CashierSessionResponse.builder()
+                                .id(session.getId())
+                                .staffId(session.getStaff().getId())
+                                .staffName(
+                                                session.getStaff().getUser().getFullName())
+                                .branchId(session.getBranch().getId())
+                                .branchName(session.getBranch().getName())
+                                .openingCash(session.getOpeningCash())
+                                .cashRevenue(session.getCashRevenue())
+                                .transferRevenue(session.getTransferRevenue())
+                                .totalRevenue(session.getTotalRevenue())
+                                .totalOrders(session.getTotalOrders())
+                                .expectedCash(session.getExpectedCash())
+                                .actualCash(session.getActualCash())
+                                .differenceAmount(session.getDifferenceAmount())
+                                .note(session.getNote())
+                                .openedAt(session.getOpenedAt())
+                                .closedAt(session.getClosedAt())
+                                .status(session.getStatus())
+                                .build();
+        }
 }

@@ -41,11 +41,11 @@ public interface TableRepository extends JpaRepository<TableEntity, Long> {
                 SELECT t
                 FROM TableEntity t
                 WHERE t.branch.id = :branchId
-                AND t.status = 'FREE'
                 AND t.id NOT IN (
                     SELECT r.table.id
                     FROM Reservation r
-                    WHERE r.status <> 'CANCELLED'
+                    WHERE r.table IS NOT NULL
+                    AND r.status NOT IN ('CANCELLED', 'COMPLETED')
                     AND (
                         :checkIn < r.checkOutTime
                         AND :checkOut > r.checkInTime

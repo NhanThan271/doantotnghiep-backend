@@ -28,7 +28,7 @@ public class StaffShift {
     @JsonIgnoreProperties({ "hibernateLazyInitializer", "handler", "shifts" })
     private Staff staff;
 
-    @ManyToOne(optional = false, fetch = FetchType.EAGER)
+    @ManyToOne(optional = true, fetch = FetchType.EAGER)
     @JoinColumn(name = "shift_id")
     @JsonIgnoreProperties({ "hibernateLazyInitializer", "handler", "staffShifts" })
     private Shift shift;

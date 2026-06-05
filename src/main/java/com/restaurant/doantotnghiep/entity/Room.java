@@ -26,7 +26,7 @@ public class Room {
 
     @ManyToOne
     @JoinColumn(name = "branch_id", nullable = false)
-    @JsonIgnoreProperties({"tables", "rooms", "promotions", "ingredients", "hibernateLazyInitializer", "handler"})
+    @JsonIgnoreProperties({ "tables", "rooms", "promotions", "ingredients", "hibernateLazyInitializer", "handler" })
     private Branch branch;
 
     @Column(nullable = false)

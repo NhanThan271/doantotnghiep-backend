@@ -22,6 +22,10 @@ public class CashierSessionResponse {
     private BigDecimal totalRevenue;
 
     private Integer totalOrders;
+    private BigDecimal expectedCash;
+    private BigDecimal actualCash;
+    private BigDecimal differenceAmount;
+    private String note;
 
     private LocalDateTime openedAt;
     private LocalDateTime closedAt;

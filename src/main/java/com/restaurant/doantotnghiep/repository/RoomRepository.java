@@ -12,27 +12,26 @@ import java.util.Optional;
 
 public interface RoomRepository extends JpaRepository<Room, Long> {
 
-    List<Room> findByBranchId(Long branchId);
+  List<Room> findByBranchId(Long branchId);
 
-    List<Room> findByStatus(RoomStatus status);
+  List<Room> findByStatus(RoomStatus status);
 
-    List<Room> findByBranchIdAndStatus(Long branchId, RoomStatus status);
+  List<Room> findByBranchIdAndStatus(Long branchId, RoomStatus status);
 
-    Optional<Room> findByBranchIdAndNumberAndArea(Long branchId, Integer number, String area);
+  Optional<Room> findByBranchIdAndNumberAndArea(Long branchId, Integer number, String area);
 
-    @Query("""
-                SELECT r FROM Room r
-                WHERE r.branch.id = :branchId
-                  AND r.status = 'ACTIVE'
-                  AND r.id NOT IN (
-                      SELECT res.room.id FROM Reservation res
-                      WHERE res.room IS NOT NULL
-                        AND res.status <> 'CANCELLED'
-                        AND (:checkIn < res.checkOutTime AND :checkOut > res.checkInTime)
-                  )
-            """)
-    List<Room> findAvailableRooms(
-            @Param("branchId") Long branchId,
-            @Param("checkIn") LocalDateTime checkIn,
-            @Param("checkOut") LocalDateTime checkOut);
+  @Query("""
+          SELECT r FROM Room r
+          WHERE r.branch.id = :branchId
+            AND r.id NOT IN (
+                SELECT res.room.id FROM Reservation res
+                WHERE res.room IS NOT NULL
+                  AND res.status NOT IN ('CANCELLED', 'COMPLETED')
+                  AND (:checkIn < res.checkOutTime AND :checkOut > res.checkInTime)
+            )
+      """)
+  List<Room> findAvailableRooms(
+      @Param("branchId") Long branchId,
+      @Param("checkIn") LocalDateTime checkIn,
+      @Param("checkOut") LocalDateTime checkOut);
 }

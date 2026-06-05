@@ -248,20 +248,20 @@ public class OrderServiceImpl implements OrderService {
 
         // Xử lý items: gán BranchFood, price, tính subtotal
         List<OrderItem> items = new ArrayList<>();
-        for (OrderItem item : order.getItems()) {
-            BranchFood bf = getBranchFood(order.getBranch().getId(), item.getFood().getId());
-
-            item.setFood(bf.getFood());
-            item.setBranchFood(bf);
-            item.setOrder(order);
-            item.setPrice(
-                    item.getPrice() != null && item.getPrice().compareTo(BigDecimal.ZERO) > 0
-                            ? item.getPrice()
-                            : getPriceFromBranchFood(bf));
-            item.calculateSubtotal();
-            items.add(item);
+        if (order.getItems() != null && !order.getItems().isEmpty()) {
+            for (OrderItem item : order.getItems()) {
+                BranchFood bf = getBranchFood(order.getBranch().getId(), item.getFood().getId());
+                item.setFood(bf.getFood());
+                item.setBranchFood(bf);
+                item.setOrder(order);
+                item.setPrice(
+                        item.getPrice() != null && item.getPrice().compareTo(BigDecimal.ZERO) > 0
+                                ? item.getPrice()
+                                : getPriceFromBranchFood(bf));
+                item.calculateSubtotal();
+                items.add(item);
+            }
         }
-
         order.setItems(items);
 
         calculateOrderTotal(order);
@@ -280,18 +280,19 @@ public class OrderServiceImpl implements OrderService {
     }
 
     private void calculateOrderTotal(Order order) {
-
         order.recalcTotal();
-
         BigDecimal total = order.getTotalAmount();
 
-        if (order.getRoom() != null) {
-            total = total.add(order.getRoom().getRoomFee());
+        if (order.getRoom() != null && order.getRoom().getId() != null) {
+            roomRepository.findById(order.getRoom().getId()).ifPresent(room -> {
+                if (room.getRoomFee() != null) {
+                    order.setTotalAmount(total.add(room.getRoomFee()));
+                }
+            });
         }
 
-        order.setTotalAmount(total);
-
-        order.setTotalAmount(applyPromotion(order));
+        BigDecimal afterPromo = applyPromotion(order);
+        order.setTotalAmount(afterPromo);
     }
 
     @Override

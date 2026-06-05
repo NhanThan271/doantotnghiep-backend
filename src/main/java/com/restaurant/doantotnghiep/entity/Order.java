@@ -31,11 +31,11 @@ public class Order {
 
     @ManyToOne(optional = true, fetch = FetchType.EAGER)
     @JoinColumn(name = "table_id")
-    @JsonIgnoreProperties({"branch", "orders", "hibernateLazyInitializer", "handler"})
+    @JsonIgnoreProperties({ "branch", "orders", "hibernateLazyInitializer", "handler" })
     private TableEntity table;
 
     @ManyToOne(optional = true, fetch = FetchType.EAGER)
-    @JsonIgnoreProperties({"branch", "orders", "hibernateLazyInitializer", "handler"})
+    @JsonIgnoreProperties({ "branch", "orders", "hibernateLazyInitializer", "handler" })
     @JoinColumn(name = "room_id")
     private Room room;
 
@@ -46,7 +46,7 @@ public class Order {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "reservation_id")
-    @JsonIgnoreProperties({"orders", "table", "room", "branch", "hibernateLazyInitializer", "handler"})
+    @JsonIgnoreProperties({ "orders", "table", "room", "branch", "hibernateLazyInitializer", "handler" })
     private Reservation reservation;
 
     @Column(length = 100)
@@ -91,14 +91,14 @@ public class Order {
 
     // Tính lại tổng tiền
     public void recalcTotal() {
-        if (items != null && !items.isEmpty()) {
-            this.totalAmount = items.stream()
-                    .peek(OrderItem::calculateSubtotal) // tính lại subtotal từng item
-                    .map(OrderItem::getSubtotal) // lấy subtotal
-                    .reduce(BigDecimal.ZERO, BigDecimal::add); // cộng dồn
-        } else {
+        if (items == null || items.isEmpty()) {
             this.totalAmount = BigDecimal.ZERO;
+            return;
         }
+        this.totalAmount = items.stream()
+                .map(OrderItem::getSubtotal)
+                .filter(s -> s != null)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
     // Tự động set thời gian khi tạo mới
