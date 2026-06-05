@@ -44,4 +44,6 @@ public interface CashierSessionService {
                         LocalDateTime to);
 
         List<BranchReportResponse> getBranchReports();
+
+        CashierSessionResponse getCurrentSessionByBranch(Long branchId);
 }

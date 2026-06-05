@@ -19,6 +19,8 @@ import com.restaurant.doantotnghiep.repository.RoomRepository;
 import com.restaurant.doantotnghiep.repository.TableRepository;
 import com.restaurant.doantotnghiep.service.OrderService;
 import com.restaurant.doantotnghiep.service.FoodService;
+import com.restaurant.doantotnghiep.service.CashierSessionService;
+import com.restaurant.doantotnghiep.dto.CashierSessionResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -45,6 +47,7 @@ public class OrderController {
     private final BillRepository billRepository;
     private final TableRepository tableRepository;
     private final RoomRepository roomRepository;
+    private final CashierSessionService cashierSessionService;
 
     @Autowired
     public OrderController(OrderService orderService,
@@ -53,7 +56,8 @@ public class OrderController {
             OrderRepository orderRepository,
             BillRepository billRepository,
             TableRepository tableRepository,
-            RoomRepository roomRepository) {
+            RoomRepository roomRepository,
+            CashierSessionService cashierSessionService) {
         this.orderService = orderService;
         this.foodService = foodService;
         this.orderWebSocketController = orderWebSocketController;
@@ -61,6 +65,7 @@ public class OrderController {
         this.billRepository = billRepository;
         this.tableRepository = tableRepository;
         this.roomRepository = roomRepository;
+        this.cashierSessionService = cashierSessionService;
     }
 
     // Lấy danh sách tất cả đơn hàng
@@ -390,6 +395,26 @@ public class OrderController {
                         .build();
 
                 billRepository.save(bill);
+
+                try {
+                    Long branchId = order.getBranch().getId();
+                    CashierSessionResponse session = cashierSessionService.getCurrentSessionByBranch(branchId);
+                    if (session != null) {
+                        String payMethod = "CASH";
+                        String m = method.name();
+                        if (m.contains("MOBILE") || m.contains("CARD")
+                                || m.contains("TRANSFER") || m.contains("BANK")) {
+                            payMethod = "TRANSFER";
+                        }
+                        cashierSessionService.updateRevenue(session.getId(), order.getTotalAmount(), payMethod);
+                        System.out
+                                .println("=== REVENUE UPDATED: " + order.getTotalAmount() + " - " + payMethod + " ===");
+                    } else {
+                        System.out.println("=== NO OPEN SESSION FOR BRANCH " + branchId + " ===");
+                    }
+                } catch (Exception ex) {
+                    System.err.println("Lỗi update revenue: " + ex.getMessage());
+                }
 
                 System.out.println("Bill created for order #" + id);
             }

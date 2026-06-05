@@ -3,9 +3,11 @@ package com.restaurant.doantotnghiep.service.impl;
 import com.restaurant.doantotnghiep.entity.*;
 import com.restaurant.doantotnghiep.entity.enums.*;
 import com.restaurant.doantotnghiep.repository.*;
+import com.restaurant.doantotnghiep.service.CashierSessionService;
 import com.restaurant.doantotnghiep.service.OrderService;
 import com.restaurant.doantotnghiep.util.SecurityUtil;
 import com.restaurant.doantotnghiep.controller.OrderWebSocketController;
+import com.restaurant.doantotnghiep.dto.CashierSessionResponse;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -37,6 +39,8 @@ public class OrderServiceImpl implements OrderService {
     private final ReservationRepository reservationRepository;
     private final ReservationItemRepository reservationItemRepository;
     private final RoomRepository roomRepository;
+    private final CashierSessionService cashierSessionService;
+    private final StaffRepository staffRepository;
 
     @Autowired
     public OrderServiceImpl(
@@ -55,7 +59,9 @@ public class OrderServiceImpl implements OrderService {
             FoodRepository foodRepository,
             ReservationRepository reservationRepository,
             ReservationItemRepository reservationItemRepository,
-            RoomRepository roomRepository) {
+            RoomRepository roomRepository,
+            CashierSessionService cashierSessionService,
+            StaffRepository staffRepository) {
 
         this.orderRepository = orderRepository;
         this.orderWebSocketController = orderWebSocketController;
@@ -73,6 +79,8 @@ public class OrderServiceImpl implements OrderService {
         this.reservationRepository = reservationRepository;
         this.reservationItemRepository = reservationItemRepository;
         this.roomRepository = roomRepository;
+        this.cashierSessionService = cashierSessionService;
+        this.staffRepository = staffRepository;
     }
 
     private BranchFood getBranchFood(Long branchId, Long foodId) {

@@ -33,4 +33,7 @@ public interface CashierSessionRepository
         List<CashierSession> findByBranchIdOrderByOpenedAtDesc(
                         Long branchId);
 
+        Optional<CashierSession> findByBranchIdAndStatus(Long branchId, CashierSessionStatus status);
+
+        
 }
