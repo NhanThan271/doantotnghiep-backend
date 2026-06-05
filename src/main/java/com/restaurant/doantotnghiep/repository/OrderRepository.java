@@ -53,4 +53,6 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
                         "LEFT JOIN FETCH o.employee " +
                         "ORDER BY o.createdAt DESC")
         List<Order> findAllWithBranch();
+
+        boolean existsByReservationId(Long reservationId);
 }
