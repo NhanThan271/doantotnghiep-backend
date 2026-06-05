@@ -32,4 +32,6 @@ public interface OrderService {
 
     Order createOrderFromReservation(Long reservationId);
 
+    Order addFoodToOrderWithPrice(Long orderId, Food food, int quantity, Double customPrice);
+
 }
