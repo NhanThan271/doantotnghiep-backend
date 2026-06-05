@@ -531,4 +531,27 @@ public class OrderServiceImpl implements OrderService {
 
         return savedOrder;
     }
+
+    @Override
+    @Transactional
+    public Order addFoodToOrderWithPrice(Long orderId, Food food, int quantity, Double customPrice) {
+        Order order = orderRepository.findWithItemsById(orderId)
+                .orElseThrow(() -> new RuntimeException("Order not found"));
+
+        BranchFood bf = getBranchFood(order.getBranch().getId(), food.getId());
+
+        OrderItem newItem = new OrderItem();
+        newItem.setOrder(order);
+        newItem.setFood(bf.getFood());
+        newItem.setBranchFood(bf);
+        newItem.setQuantity(quantity);
+        // ✅ DÙNG PRICE TỪ REQUEST (customPrice)
+        newItem.setPrice(BigDecimal.valueOf(customPrice));
+        newItem.calculateSubtotal();
+        order.getItems().add(newItem);
+
+        calculateOrderTotal(order);
+
+        return orderRepository.save(order);
+    }
 }

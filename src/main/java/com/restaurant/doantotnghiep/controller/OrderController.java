@@ -139,12 +139,18 @@ public class OrderController {
             for (Map<String, Object> item : newItems) {
                 Long foodId = ((Number) item.get("foodId")).longValue();
                 Integer quantity = (Integer) item.get("quantity");
-
+                Double customPrice = null;
+                if (item.containsKey("price") && item.get("price") != null) {
+                    customPrice = ((Number) item.get("price")).doubleValue();
+                }
                 System.out.println("Thêm món #" + foodId + " x" + quantity);
 
                 Food food = foodService.getFoodById(foodId);
-                existingOrder = orderService.addFoodToOrder(orderId, food, quantity);
-
+                if (customPrice != null && customPrice > 0) {
+                    existingOrder = orderService.addFoodToOrderWithPrice(orderId, food, quantity, customPrice);
+                } else {
+                    existingOrder = orderService.addFoodToOrder(orderId, food, quantity);
+                }
                 orderService.addKitchenItemsForNewFood(orderId, foodId, quantity);
             }
 
