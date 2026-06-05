@@ -60,9 +60,21 @@ public class AuthController {
         @PostMapping("register")
         public ResponseEntity<?> register(@RequestBody RegisterDto registerDto) {
 
-                if (userRepository.existsByUsername(registerDto.getUsername())) {
+                String normalizedUsername = registerDto.getUsername().toLowerCase().trim();
+                if (!normalizedUsername.matches("^[a-z0-9_]+$")) {
                         return ResponseEntity.badRequest()
-                                        .body(new MessageResponse("Username is taken!"));
+                                        .body(new MessageResponse(
+                                                        "Tên đăng nhập không được chứa dấu hoặc ký tự đặc biệt!"));
+                }
+
+                if (userRepository.existsByUsername(normalizedUsername)) {
+                        return ResponseEntity.badRequest()
+                                        .body(new MessageResponse("Tên đăng nhập đã được sử dụng!"));
+                }
+
+                if (userRepository.existsByEmail(registerDto.getEmail())) {
+                        return ResponseEntity.badRequest()
+                                        .body(new MessageResponse("Email đã được sử dụng!"));
                 }
 
                 Role roleEnum;
@@ -75,7 +87,7 @@ public class AuthController {
 
                 // tạo user
                 User user = new User();
-                user.setUsername(registerDto.getUsername());
+                user.setUsername(normalizedUsername);
                 user.setFullName(registerDto.getFullName());
                 user.setPassword(passwordEncoder.encode(registerDto.getPassword()));
                 user.setPhone(registerDto.getPhone());
@@ -127,8 +139,14 @@ public class AuthController {
 
         @PostMapping("login")
         public ResponseEntity<?> login(@RequestBody LoginDto loginDto) {
+                String normalizedUsername = loginDto.getUsername().toLowerCase().trim();
+                if (!normalizedUsername.matches("^[a-z0-9_]+$")) {
+                        return ResponseEntity.badRequest()
+                                        .body(new MessageResponse("Tên đăng nhập không hợp lệ!"));
+                }
                 Authentication authentication = authenticationManager.authenticate(
-                                new UsernamePasswordAuthenticationToken(loginDto.getUsername(),
+                                new UsernamePasswordAuthenticationToken(
+                                                normalizedUsername,
                                                 loginDto.getPassword()));
 
                 SecurityContextHolder.getContext().setAuthentication(authentication);
