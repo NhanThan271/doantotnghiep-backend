@@ -15,6 +15,7 @@ import com.restaurant.doantotnghiep.entity.enums.RoomStatus;
 import com.restaurant.doantotnghiep.entity.enums.Status;
 import com.restaurant.doantotnghiep.repository.BranchFoodRepository;
 import com.restaurant.doantotnghiep.repository.BranchRepository;
+import com.restaurant.doantotnghiep.repository.OrderRepository;
 import com.restaurant.doantotnghiep.repository.ReservationItemRepository;
 import com.restaurant.doantotnghiep.repository.ReservationRepository;
 import com.restaurant.doantotnghiep.repository.RoomRepository;
@@ -50,6 +51,7 @@ public class ReservationServiceImpl implements ReservationService {
         private final ReservationItemRepository reservationItemRepository;
         private final EmailService emailService;
         private final OrderServiceImpl orderService;
+        private final OrderRepository orderRepository;
 
         @Transactional
         public Reservation createFullReservation(Map<String, Object> request) {
@@ -305,11 +307,9 @@ public class ReservationServiceImpl implements ReservationService {
                         }
 
                         // tạo order nếu chưa có
-                        if (reservation.getOrders() == null
-                                        || reservation.getOrders().isEmpty()) {
-
-                                orderService.createOrderFromReservation(
-                                                reservation.getId());
+                        boolean orderExists = orderRepository.existsByReservationId(reservation.getId());
+                        if (!orderExists) {
+                                orderService.createOrderFromReservation(reservation.getId());
                         }
                 }
 

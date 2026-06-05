@@ -5,6 +5,9 @@ import com.restaurant.doantotnghiep.entity.ReservationItem;
 import com.restaurant.doantotnghiep.entity.enums.ReservationStatus;
 import com.restaurant.doantotnghiep.repository.ReservationItemRepository;
 import com.restaurant.doantotnghiep.repository.ReservationRepository;
+import com.restaurant.doantotnghiep.service.impl.OrderServiceImpl;
+
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -25,12 +28,14 @@ public class KitchenNotificationScheduler {
         private final ReservationRepository reservationRepository;
         private final ReservationItemRepository reservationItemRepository;
         private final RestTemplate restTemplate;
+        private final OrderServiceImpl orderService;
 
+        @Transactional
         @Scheduled(fixedRate = 5000)
         public void notifyKitchen() {
 
                 LocalDateTime from = LocalDateTime.now().plusMinutes(40);
-                LocalDateTime to = from.plusMinutes(1);
+                LocalDateTime to = LocalDateTime.now().plusMinutes(50);
 
                 List<Reservation> upcoming = reservationRepository
                                 .findByCheckInTimeBetweenAndStatus(from, to, ReservationStatus.CONFIRMED);
@@ -43,6 +48,20 @@ public class KitchenNotificationScheduler {
 
                         List<ReservationItem> items = reservationItemRepository
                                         .findByReservationId(r.getId());
+
+                        if (items.isEmpty()) {
+                                log.info("RES-{} không có món đặt trước, bỏ qua", r.getId());
+                                continue;
+                        }
+
+                        try {
+                                orderService.createOrderFromReservation(r.getId());
+                                r.setNotifiedKitchen(true);
+                                log.info("Đã tạo kitchen order cho RES-{}", r.getId());
+                        } catch (Exception e) {
+                                log.error("Lỗi tạo kitchen order cho RES-{}: {}", r.getId(), e.getMessage());
+                                continue;
+                        }
 
                         List<Map<String, Object>> foodList = items.stream()
                                         .map(item -> Map.<String, Object>of(
@@ -79,8 +98,6 @@ public class KitchenNotificationScheduler {
                                                 "http://localhost:3001/notify-kitchen-reservation",
                                                 entity,
                                                 Map.class);
-
-                                r.setNotifiedKitchen(true);
 
                                 reservationRepository.save(r);
 
