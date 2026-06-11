@@ -61,6 +61,8 @@ public class WebSecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(Arrays.asList("http://localhost:3000", // React frontend
                 "http://localhost:3001", // Socket.IO server (Node)
+                "http://103.200.23.74:8081",
+                "http://103.200.23.74",
                 "http://localhost:4000"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
