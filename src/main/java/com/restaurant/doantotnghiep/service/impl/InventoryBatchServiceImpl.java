@@ -14,199 +14,205 @@ import java.util.Map;
 @Service
 public class InventoryBatchServiceImpl implements InventoryBatchService {
 
-    private final InventoryBatchRepository batchRepository;
-    private final BranchRepository branchRepository;
-    private final IngredientRepository ingredientRepository;
-    private final BranchIngredientRepository branchIngredientRepository;
+        private final InventoryBatchRepository batchRepository;
+        private final BranchRepository branchRepository;
+        private final IngredientRepository ingredientRepository;
+        private final BranchIngredientRepository branchIngredientRepository;
 
-    public InventoryBatchServiceImpl(InventoryBatchRepository batchRepository,
-            BranchRepository branchRepository,
-            IngredientRepository ingredientRepository,
-            BranchIngredientRepository branchIngredientRepository) {
-        this.batchRepository = batchRepository;
-        this.branchRepository = branchRepository;
-        this.ingredientRepository = ingredientRepository;
-        this.branchIngredientRepository = branchIngredientRepository;
-    }
-
-    @Override
-    public InventoryBatch create(Long branchId, Long ingredientId,
-            Double quantity, LocalDate expiryDate) {
-
-        Branch branch = branchRepository.findById(branchId)
-                .orElseThrow(() -> new RuntimeException("Branch not found"));
-
-        Ingredient ingredient = ingredientRepository.findById(ingredientId)
-                .orElseThrow(() -> new RuntimeException("Ingredient not found"));
-
-        // tạo batch
-        InventoryBatch batch = InventoryBatch.builder()
-                .branch(branch)
-                .ingredient(ingredient)
-                .quantity(quantity)
-                .remainingQuantity(quantity)
-                .expiryDate(expiryDate)
-                .importedAt(LocalDateTime.now())
-                .build();
-
-        batchRepository.save(batch);
-
-        // update tồn tổng chi nhánh - nguyên liệu
-        BranchIngredient branchIngredient = branchIngredientRepository
-                .findByBranchIdAndIngredientId(branchId, ingredientId)
-                .orElse(null);
-
-        if (branchIngredient == null) {
-            branchIngredient = BranchIngredient.builder()
-                    .branch(branch)
-                    .ingredient(ingredient)
-                    .quantity(quantity)
-                    .build();
-        } else {
-            branchIngredient.setQuantity(
-                    branchIngredient.getQuantity() + quantity);
+        public InventoryBatchServiceImpl(InventoryBatchRepository batchRepository,
+                        BranchRepository branchRepository,
+                        IngredientRepository ingredientRepository,
+                        BranchIngredientRepository branchIngredientRepository) {
+                this.batchRepository = batchRepository;
+                this.branchRepository = branchRepository;
+                this.ingredientRepository = ingredientRepository;
+                this.branchIngredientRepository = branchIngredientRepository;
         }
 
-        branchIngredientRepository.save(branchIngredient);
+        @Override
+        public InventoryBatch create(Long branchId, Long ingredientId,
+                        Double quantity, LocalDate expiryDate) {
 
-        return batch;
-    }
+                Branch branch = branchRepository.findById(branchId)
+                                .orElseThrow(() -> new RuntimeException("Branch not found"));
 
-    @Override
-    public InventoryBatch getById(Long id) {
-        return batchRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Batch not found"));
-    }
+                Ingredient ingredient = ingredientRepository.findById(ingredientId)
+                                .orElseThrow(() -> new RuntimeException("Ingredient not found"));
 
-    @Override
-    public List<InventoryBatch> getAll() {
-        return batchRepository.findAll();
-    }
+                // tạo batch
+                InventoryBatch batch = InventoryBatch.builder()
+                                .branch(branch)
+                                .ingredient(ingredient)
+                                .quantity(quantity)
+                                .remainingQuantity(quantity)
+                                .expiryDate(expiryDate)
+                                .importedAt(LocalDateTime.now())
+                                .build();
 
-    @Override
-    public List<InventoryBatch> getByBranchAndIngredient(Long branchId, Long ingredientId) {
-        return batchRepository
-                .findByBranchIdAndIngredientIdOrderByImportedAtAsc(branchId, ingredientId);
-    }
+                batchRepository.save(batch);
 
-    @Override
-    public void delete(Long id) {
-        InventoryBatch batch = getById(id);
-        batchRepository.delete(batch);
-    }
+                // update tồn tổng chi nhánh - nguyên liệu
+                BranchIngredient branchIngredient = branchIngredientRepository
+                                .findByBranchIdAndIngredientId(branchId, ingredientId)
+                                .orElse(null);
 
-    @Override
-    public List<InventoryBatchDTO> getByBranchAsDTO(Long branchId) {
-        List<InventoryBatch> batches = batchRepository.findByBranchIdOrderByImportedAtDesc(branchId);
+                if (branchIngredient == null) {
+                        branchIngredient = BranchIngredient.builder()
+                                        .branch(branch)
+                                        .ingredient(ingredient)
+                                        .quantity(quantity)
+                                        .build();
+                } else {
+                        branchIngredient.setQuantity(
+                                        branchIngredient.getQuantity() + quantity);
+                }
 
-        return batches.stream().map(batch -> {
-            Long days = batch.getExpiryDate() != null
-                    ? java.time.temporal.ChronoUnit.DAYS.between(
-                            LocalDate.now(), batch.getExpiryDate())
-                    : null;
+                branchIngredientRepository.save(branchIngredient);
 
-            return InventoryBatchDTO.builder()
-                    .id(batch.getId())
-                    .ingredientName(batch.getIngredient().getName())
-                    .unit(batch.getIngredient().getUnit())
-                    .quantity(batch.getQuantity())
-                    .remainingQuantity(batch.getRemainingQuantity())
-                    .createdAt(batch.getImportedAt())
-                    .warehouseName(
-                            batch.getWarehouse() != null
-                                    ? batch.getWarehouse().getName()
-                                    : null)
-                    .daysToExpire(days) 
-                    .expired(days != null && days < 0)
-                    .nearExpired(days != null && days >= 0 && days <= 7)
-                    .build();
-        }).toList();
-    }
+                return batch;
+        }
 
-    public List<InventoryBatch> getNearExpired() {
-        return batchRepository.findByExpiryDateBetween(
-                LocalDate.now(),
-                LocalDate.now().plusDays(7));
-    }
+        @Override
+        public InventoryBatch getById(Long id) {
+                return batchRepository.findById(id)
+                                .orElseThrow(() -> new RuntimeException("Batch not found"));
+        }
 
-    public List<InventoryBatch> getWarehouseBatches(Long warehouseId) {
-        return batchRepository
-                .findByWarehouseIdOrderByExpiryDateAsc(warehouseId);
-    }
+        @Override
+        public List<InventoryBatch> getAll() {
+                return batchRepository.findAll();
+        }
 
-    public List<Map<String, Object>> getAggregatedByWarehouse(Long warehouseId) {
-        List<InventoryBatch> batches = batchRepository
-                .findByWarehouseIdOrderByExpiryDateAsc(warehouseId);
+        @Override
+        public List<InventoryBatch> getByBranchAndIngredient(Long branchId, Long ingredientId) {
+                return batchRepository
+                                .findByBranchIdAndIngredientIdOrderByImportedAtAsc(branchId, ingredientId);
+        }
 
-        return batches.stream()
-                .filter(b -> b.getExpiryDate() != null
-                        && !b.getExpiryDate().isBefore(LocalDate.now())
-                        && b.getRemainingQuantity() != null
-                        && b.getRemainingQuantity() > 0)
-                .collect(java.util.stream.Collectors.groupingBy(
-                        b -> b.getIngredient().getId(),
-                        java.util.stream.Collectors.toList()))
-                .entrySet().stream()
-                .map(entry -> {
-                    InventoryBatch first = entry.getValue().get(0);
-                    double total = entry.getValue().stream()
-                            .mapToDouble(b -> b.getRemainingQuantity())
-                            .sum();
-                    Map<String, Object> row = new java.util.LinkedHashMap<>();
-                    row.put("id", first.getIngredient().getId());
-                    row.put("ingredient", Map.of(
-                            "name", first.getIngredient().getName(),
-                            "unit", first.getIngredient().getUnit()));
-                    row.put("quantity", total);
-                    return row;
-                })
-                .toList();
-    }
+        @Override
+        public void delete(Long id) {
+                InventoryBatch batch = getById(id);
+                batchRepository.delete(batch);
+        }
 
-    public List<Map<String, Object>> getAggregatedByBranch(Long branchId) {
-        List<InventoryBatch> batches = batchRepository.findByBranchIdOrderByImportedAtDesc(branchId);
+        @Override
+        public List<InventoryBatchDTO> getByBranchAsDTO(Long branchId) {
+                List<InventoryBatch> batches = batchRepository.findByBranchIdOrderByImportedAtDesc(branchId);
 
-        return batches.stream()
-                .filter(b -> b.getRemainingQuantity() != null && b.getRemainingQuantity() > 0)
-                .collect(java.util.stream.Collectors.groupingBy(
-                        b -> b.getIngredient().getId(),
-                        java.util.stream.Collectors.toList()))
-                .entrySet().stream()
-                .map(entry -> {
-                    InventoryBatch nearest = entry.getValue().stream()
-                            .filter(b -> b.getExpiryDate() != null)
-                            .min(java.util.Comparator.comparing(InventoryBatch::getExpiryDate))
-                            .orElse(entry.getValue().get(0));
+                return batches.stream().map(batch -> {
+                        Long days = batch.getExpiryDate() != null
+                                        ? java.time.temporal.ChronoUnit.DAYS.between(
+                                                        LocalDate.now(), batch.getExpiryDate())
+                                        : null;
 
-                    double validTotal = entry.getValue().stream()
-                            .filter(b -> b.getExpiryDate() != null
-                                    && !b.getExpiryDate().isBefore(LocalDate.now()))
-                            .mapToDouble(InventoryBatch::getRemainingQuantity)
-                            .sum();
+                        return InventoryBatchDTO.builder()
+                                        .id(batch.getId())
+                                        .ingredientName(batch.getIngredient().getName())
+                                        .unit(batch.getIngredient().getUnit())
+                                        .quantity(batch.getQuantity())
+                                        .remainingQuantity(batch.getRemainingQuantity())
+                                        .createdAt(batch.getImportedAt())
+                                        .warehouseName(
+                                                        batch.getWarehouse() != null
+                                                                        ? batch.getWarehouse().getName()
+                                                                        : null)
+                                        .daysToExpire(days)
+                                        .expired(days != null && days < 0)
+                                        .nearExpired(days != null && days >= 0 && days <= 7)
+                                        .build();
+                }).toList();
+        }
 
-                    double allTotal = entry.getValue().stream()
-                            .mapToDouble(InventoryBatch::getRemainingQuantity)
-                            .sum();
+        public List<InventoryBatch> getNearExpired() {
+                return batchRepository.findByExpiryDateBetween(
+                                LocalDate.now(),
+                                LocalDate.now().plusDays(7));
+        }
 
-                    long daysToExpire = nearest.getExpiryDate() != null
-                            ? java.time.temporal.ChronoUnit.DAYS.between(
-                                    LocalDate.now(), nearest.getExpiryDate())
-                            : 9999L;
+        public List<InventoryBatch> getWarehouseBatches(Long warehouseId) {
+                return batchRepository
+                                .findByWarehouseIdOrderByExpiryDateAsc(warehouseId);
+        }
 
-                    Map<String, Object> row = new java.util.LinkedHashMap<>();
-                    row.put("ingredientId", nearest.getIngredient().getId());
-                    row.put("ingredientName", nearest.getIngredient().getName());
-                    row.put("unit", nearest.getIngredient().getUnit());
-                    row.put("totalQuantity", validTotal);
-                    row.put("totalQuantityAll", allTotal);
-                    row.put("nearestExpiryDate", nearest.getExpiryDate() != null
-                            ? nearest.getExpiryDate().toString()
-                            : null);
-                    row.put("daysToExpire", daysToExpire);
-                    row.put("expired", daysToExpire < 0);
-                    row.put("nearExpired", daysToExpire >= 0 && daysToExpire <= 7);
-                    return row;
-                })
-                .toList();
-    }
+        public List<Map<String, Object>> getAggregatedByWarehouse(Long warehouseId) {
+                List<InventoryBatch> batches = batchRepository
+                                .findByWarehouseIdOrderByExpiryDateAsc(warehouseId);
+
+                return batches.stream()
+                                .filter(b -> b.getExpiryDate() != null
+                                                && !b.getExpiryDate().isBefore(LocalDate.now())
+                                                && b.getRemainingQuantity() != null
+                                                && b.getRemainingQuantity() > 0)
+                                .collect(java.util.stream.Collectors.groupingBy(
+                                                b -> b.getIngredient().getId(),
+                                                java.util.stream.Collectors.toList()))
+                                .entrySet().stream()
+                                .map(entry -> {
+                                        InventoryBatch first = entry.getValue().get(0);
+                                        double total = entry.getValue().stream()
+                                                        .mapToDouble(b -> b.getRemainingQuantity())
+                                                        .sum();
+                                        Map<String, Object> row = new java.util.LinkedHashMap<>();
+                                        row.put("id", first.getIngredient().getId());
+                                        row.put("ingredient", Map.of(
+                                                        "name", first.getIngredient().getName(),
+                                                        "unit", first.getIngredient().getUnit()));
+                                        row.put("quantity", total);
+                                        return row;
+                                })
+                                .toList();
+        }
+
+        public List<Map<String, Object>> getAggregatedByBranch(Long branchId) {
+                List<InventoryBatch> batches = batchRepository.findByBranchIdOrderByImportedAtDesc(branchId);
+
+                return batches.stream()
+                                .filter(b -> b.getRemainingQuantity() != null && b.getRemainingQuantity() > 0)
+                                .collect(java.util.stream.Collectors.groupingBy(
+                                                b -> b.getIngredient().getId(),
+                                                java.util.stream.Collectors.toList()))
+                                .entrySet().stream()
+                                .map(entry -> {
+                                        InventoryBatch nearest = entry.getValue().stream()
+                                                        .filter(b -> b.getExpiryDate() != null
+                                                                        && !b.getExpiryDate().isBefore(LocalDate.now())
+                                                                        && b.getRemainingQuantity() > 0)
+                                                        .min(java.util.Comparator
+                                                                        .comparing(InventoryBatch::getExpiryDate))
+                                                        .orElse(null); // null nếu không có lô nào còn hạn
+
+                                        double validTotal = entry.getValue().stream()
+                                                        .filter(b -> b.getExpiryDate() != null
+                                                                        && !b.getExpiryDate().isBefore(LocalDate.now()))
+                                                        .mapToDouble(InventoryBatch::getRemainingQuantity)
+                                                        .sum();
+
+                                        double allTotal = entry.getValue().stream()
+                                                        .mapToDouble(InventoryBatch::getRemainingQuantity)
+                                                        .sum();
+
+                                        long daysToExpire = (nearest != null && nearest.getExpiryDate() != null)
+                                                        ? java.time.temporal.ChronoUnit.DAYS.between(
+                                                                        LocalDate.now(), nearest.getExpiryDate())
+                                                        : -9999L; // không có lô hợp lệ
+
+                                        InventoryBatch sample = entry.getValue().get(0);
+
+                                        Map<String, Object> row = new java.util.LinkedHashMap<>();
+                                        row.put("ingredientId", sample.getIngredient().getId());
+                                        row.put("ingredientName", sample.getIngredient().getName());
+                                        row.put("unit", sample.getIngredient().getUnit());
+                                        row.put("totalQuantity", validTotal);
+                                        row.put("totalQuantityAll", allTotal);
+                                        row.put("nearestExpiryDate", nearest != null && nearest.getExpiryDate() != null
+                                                        ? nearest.getExpiryDate().toString()
+                                                        : null);
+                                        row.put("daysToExpire", daysToExpire);
+                                        row.put("expired", validTotal == 0 || nearest == null);
+                                        row.put("nearExpired",
+                                                        nearest != null && daysToExpire >= 0 && daysToExpire <= 7);
+                                        return row;
+                                })
+                                .toList();
+        }
 }
