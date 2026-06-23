@@ -1,5 +1,6 @@
 package com.restaurant.doantotnghiep.service;
 
+import com.restaurant.doantotnghiep.entity.Order;
 import com.restaurant.doantotnghiep.entity.Reservation;
 import com.restaurant.doantotnghiep.entity.ReservationItem;
 import com.restaurant.doantotnghiep.entity.enums.ReservationStatus;
@@ -55,9 +56,51 @@ public class KitchenNotificationScheduler {
                         }
 
                         try {
-                                orderService.createOrderFromReservation(r.getId());
+                                Order createdOrder = orderService.createOrderFromReservation(r.getId());
                                 r.setNotifiedKitchen(true);
-                                log.info("Đã tạo kitchen order cho RES-{}", r.getId());
+
+                                List<Map<String, Object>> kitchenItems = items.stream()
+                                                .map(item -> Map.<String, Object>of(
+                                                                "id", item.getBranchFood().getFood().getId(),
+                                                                "name", item.getBranchFood().getFood().getName(),
+                                                                "quantity", item.getQuantity()))
+                                                .collect(Collectors.toList());
+
+                                Map<String, Object> orderPayload = new HashMap<>();
+                                orderPayload.put("orderId", createdOrder.getId());
+                                orderPayload.put("branchId", r.getBranch().getId());
+                                orderPayload.put("tableNumber",
+                                                r.getTable() != null ? r.getTable().getNumber()
+                                                                : r.getRoom() != null ? r.getRoom().getNumber() : "");
+                                orderPayload.put("locationName",
+                                                r.getTable() != null ? "Bàn " + r.getTable().getNumber()
+                                                                : r.getRoom() != null
+                                                                                ? "Phòng " + r.getRoom().getNumber()
+                                                                                : "");
+                                orderPayload.put("areaName",
+                                                r.getTable() != null
+                                                                ? (r.getTable().getArea() != null
+                                                                                ? r.getTable().getArea()
+                                                                                : "Khu chính")
+                                                                : r.getRoom() != null ? "Khu VIP" : "Khu chính");
+                                orderPayload.put("items", kitchenItems);
+                                orderPayload.put("isRoom", r.getRoom() != null);
+                                orderPayload.put("timestamp", java.time.LocalDateTime.now().toString());
+
+                                try {
+                                        HttpHeaders orderHeaders = new HttpHeaders();
+                                        orderHeaders.setContentType(MediaType.APPLICATION_JSON);
+                                        HttpEntity<Map<String, Object>> orderEntity = new HttpEntity<>(orderPayload,
+                                                        orderHeaders);
+                                        restTemplate.postForEntity(
+                                                        "http://localhost:3001/notify-new-order",
+                                                        orderEntity,
+                                                        Map.class);
+                                        log.info("Đã emit new-order cho bếp, orderId={}", createdOrder.getId());
+                                } catch (Exception e) {
+                                        log.error("Không thể emit new-order: {}", e.getMessage());
+                                }
+
                         } catch (Exception e) {
                                 log.error("Lỗi tạo kitchen order cho RES-{}: {}", r.getId(), e.getMessage());
                                 continue;
