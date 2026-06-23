@@ -389,6 +389,12 @@ public class OrderServiceImpl implements OrderService {
                         .build();
                 billRepository.save(bill);
             }
+
+            if (order.getReservation() != null) {
+                Reservation reservation = order.getReservation();
+                reservation.setPaymentStatus(PaymentStatus.PAID);
+                reservationRepository.save(reservation);
+            }
             freeResource(order);
         }
 
