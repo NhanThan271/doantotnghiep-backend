@@ -420,7 +420,7 @@ public class OrderServiceImpl implements OrderService {
         order.setUpdatedAt(LocalDateTime.now());
 
         if (status == OrderStatus.COMPLETED && oldStatus != OrderStatus.COMPLETED) {
-            deductIngredients(order);
+
         }
 
         Order updated = orderRepository.save(order);
