@@ -276,9 +276,20 @@ public class ReservationServiceImpl implements ReservationService {
                                                 .status(r.getStatus().name())
                                                 .checkInTime(r.getCheckInTime())
                                                 .checkOutTime(r.getCheckOutTime())
-                                                .remainingAmount(r.getTotalPrice() - r.getDepositAmount())
+                                                .remainingAmount(calculateRemainingAmount(r))
                                                 .build())
                                 .collect(Collectors.toList());
+        }
+
+        private double calculateRemainingAmount(Reservation r) {
+                if (r.getPaymentStatus() == PaymentStatus.PAID) {
+                        return 0.0;
+                }
+                double total = Math.round(r.getTotalPrice() * 100.0) / 100.0;
+                double deposit = Math.round(r.getDepositAmount() * 100.0) / 100.0;
+                double remaining = Math.round((total - deposit) * 100.0) / 100.0;
+
+                return Math.max(0.0, remaining);
         }
 
         @Override
