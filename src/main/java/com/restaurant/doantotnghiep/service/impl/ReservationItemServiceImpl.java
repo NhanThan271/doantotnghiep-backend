@@ -2,6 +2,7 @@ package com.restaurant.doantotnghiep.service.impl;
 
 import com.restaurant.doantotnghiep.entity.*;
 import com.restaurant.doantotnghiep.repository.*;
+import com.restaurant.doantotnghiep.service.PriceCalculationService;
 import com.restaurant.doantotnghiep.service.ReservationItemService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -16,6 +17,7 @@ public class ReservationItemServiceImpl implements ReservationItemService {
     private final ReservationItemRepository repository;
     private final ReservationRepository reservationRepository;
     private final BranchFoodRepository branchFoodRepository;
+    private final PriceCalculationService priceCalculationService;
 
     @Override
     public ReservationItem create(Long reservationId, Long branchFoodId, Integer quantity) {
@@ -37,7 +39,7 @@ public class ReservationItemServiceImpl implements ReservationItemService {
                 .reservation(reservation)
                 .branchFood(branchFood)
                 .quantity(quantity)
-                .price(BigDecimal.valueOf(price))
+                .price(priceCalculationService.calculateFinalPrice(branchFood))
                 .build();
 
         return repository.save(item);
