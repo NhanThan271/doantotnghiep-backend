@@ -307,24 +307,22 @@ public class ReservationServiceImpl implements ReservationService {
 
                 reservation.setStatus(status);
                 reservation.setUpdatedAt(LocalDateTime.now());
+                if (status == ReservationStatus.CONFIRMED) {
+                        boolean orderExists = orderRepository.existsByReservationId(reservation.getId());
+                        if (!orderExists) {
+                                orderService.createOrderFromReservation(reservation.getId());
+                        }
+                }
 
                 if (status == ReservationStatus.CHECKED_IN) {
-
                         if (reservation.getTable() != null) {
-
                                 reservation.getTable().setStatus(Status.OCCUPIED);
-
                                 tableRepository.save(reservation.getTable());
                         }
-
                         if (reservation.getRoom() != null) {
-
                                 reservation.getRoom().setStatus(RoomStatus.OCCUPIED);
-
                                 roomRepository.save(reservation.getRoom());
                         }
-
-                        // tạo order nếu chưa có
                         boolean orderExists = orderRepository.existsByReservationId(reservation.getId());
                         if (!orderExists) {
                                 orderService.createOrderFromReservation(reservation.getId());
