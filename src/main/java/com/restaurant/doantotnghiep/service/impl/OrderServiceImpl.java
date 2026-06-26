@@ -530,6 +530,12 @@ public class OrderServiceImpl implements OrderService {
 
         calculateOrderTotal(order);
 
+        if (reservation.getDepositAmount() != null && reservation.getDepositAmount() > 0) {
+            BigDecimal deposit = BigDecimal.valueOf(reservation.getDepositAmount());
+            BigDecimal remaining = order.getTotalAmount().subtract(deposit);
+            order.setTotalAmount(remaining.compareTo(BigDecimal.ZERO) < 0 ? BigDecimal.ZERO : remaining);
+        }
+
         Order savedOrder = orderRepository.save(order);
 
         createKitchenOrderFor(savedOrder);
