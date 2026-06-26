@@ -23,6 +23,7 @@ import com.restaurant.doantotnghiep.repository.TableRepository;
 import com.restaurant.doantotnghiep.repository.UserRepository;
 import com.restaurant.doantotnghiep.service.EmailService;
 import com.restaurant.doantotnghiep.service.KitchenOrderService;
+import com.restaurant.doantotnghiep.service.PriceCalculationService;
 import com.restaurant.doantotnghiep.service.ReservationService;
 
 import jakarta.transaction.Transactional;
@@ -51,6 +52,7 @@ public class ReservationServiceImpl implements ReservationService {
         private final ReservationItemRepository reservationItemRepository;
         private final EmailService emailService;
         private final OrderServiceImpl orderService;
+        private final PriceCalculationService priceCalculationService;
         private final OrderRepository orderRepository;
 
         @Transactional
@@ -194,10 +196,7 @@ public class ReservationServiceImpl implements ReservationService {
                         BranchFood branchFood = branchFoodRepository.findById(branchFoodId)
                                         .orElseThrow(() -> new RuntimeException("BranchFood not found"));
 
-                        BigDecimal price = BigDecimal.valueOf(
-                                        branchFood.getCustomPrice() != null
-                                                        ? branchFood.getCustomPrice()
-                                                        : branchFood.getFood().getPrice().doubleValue());
+                        BigDecimal price = priceCalculationService.calculateFinalPrice(branchFood);
 
                         ReservationItem reservationItem = ReservationItem.builder()
                                         .reservation(reservation)

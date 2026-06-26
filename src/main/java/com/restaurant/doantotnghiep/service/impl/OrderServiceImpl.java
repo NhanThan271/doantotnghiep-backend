@@ -5,6 +5,7 @@ import com.restaurant.doantotnghiep.entity.enums.*;
 import com.restaurant.doantotnghiep.repository.*;
 import com.restaurant.doantotnghiep.service.CashierSessionService;
 import com.restaurant.doantotnghiep.service.OrderService;
+import com.restaurant.doantotnghiep.service.PriceCalculationService;
 import com.restaurant.doantotnghiep.util.SecurityUtil;
 import com.restaurant.doantotnghiep.controller.OrderWebSocketController;
 import com.restaurant.doantotnghiep.dto.CashierSessionResponse;
@@ -41,6 +42,7 @@ public class OrderServiceImpl implements OrderService {
     private final RoomRepository roomRepository;
     private final CashierSessionService cashierSessionService;
     private final StaffRepository staffRepository;
+    private final PriceCalculationService priceCalculationService;
 
     @Autowired
     public OrderServiceImpl(
@@ -61,7 +63,8 @@ public class OrderServiceImpl implements OrderService {
             ReservationItemRepository reservationItemRepository,
             RoomRepository roomRepository,
             CashierSessionService cashierSessionService,
-            StaffRepository staffRepository) {
+            StaffRepository staffRepository,
+            PriceCalculationService priceCalculationService) {
 
         this.orderRepository = orderRepository;
         this.orderWebSocketController = orderWebSocketController;
@@ -81,6 +84,7 @@ public class OrderServiceImpl implements OrderService {
         this.roomRepository = roomRepository;
         this.cashierSessionService = cashierSessionService;
         this.staffRepository = staffRepository;
+        this.priceCalculationService = priceCalculationService;
     }
 
     private BranchFood getBranchFood(Long branchId, Long foodId) {
@@ -317,7 +321,7 @@ public class OrderServiceImpl implements OrderService {
         newItem.setFood(bf.getFood());
         newItem.setBranchFood(bf);
         newItem.setQuantity(quantity);
-        newItem.setPrice(getPriceFromBranchFood(bf));
+        newItem.setPrice(priceCalculationService.calculateFinalPrice(bf));
         newItem.calculateSubtotal();
         order.getItems().add(newItem);
 
@@ -347,7 +351,7 @@ public class OrderServiceImpl implements OrderService {
             newItem.setFood(bf.getFood());
             newItem.setBranchFood(bf);
             newItem.setQuantity(quantity);
-            newItem.setPrice(getPriceFromBranchFood(bf));
+            newItem.setPrice(priceCalculationService.calculateFinalPrice(bf));
             newItem.calculateSubtotal();
             order.getItems().add(newItem);
         }
