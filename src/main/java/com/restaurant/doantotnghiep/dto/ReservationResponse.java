@@ -22,4 +22,6 @@ public class ReservationResponse {
     private String status;
     private LocalDateTime checkInTime;
     private LocalDateTime checkOutTime;
+    private Double depositAmount;
+    private Double totalPrice;
 }

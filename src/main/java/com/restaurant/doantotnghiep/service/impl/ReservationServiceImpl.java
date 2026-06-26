@@ -281,6 +281,8 @@ public class ReservationServiceImpl implements ReservationService {
                                                 .status(r.getStatus().name())
                                                 .checkInTime(r.getCheckInTime())
                                                 .checkOutTime(r.getCheckOutTime())
+                                                .totalPrice(r.getTotalPrice())
+                                                .depositAmount(r.getDepositAmount())
                                                 .remainingAmount(calculateRemainingAmount(r))
                                                 .build())
                                 .collect(Collectors.toList());
