@@ -273,6 +273,11 @@ public class ReservationServiceImpl implements ReservationService {
                                                 .branchName(r.getBranch() != null ? r.getBranch().getName() : null)
                                                 .tableNumber(r.getTable() != null ? r.getTable().getNumber() : null)
                                                 .roomNumber(r.getRoom() != null ? r.getRoom().getNumber() : null)
+                                                .area(
+                                                                r.getTable() != null ? r.getTable().getArea()
+                                                                                : r.getRoom() != null
+                                                                                                ? r.getRoom().getArea()
+                                                                                                : null)
                                                 .status(r.getStatus().name())
                                                 .checkInTime(r.getCheckInTime())
                                                 .checkOutTime(r.getCheckOutTime())
