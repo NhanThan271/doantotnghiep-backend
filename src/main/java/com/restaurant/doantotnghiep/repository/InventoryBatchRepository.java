@@ -70,4 +70,14 @@ public interface InventoryBatchRepository extends JpaRepository<InventoryBatch, 
                         Long ingredientId,
                         Double remainingQuantity,
                         LocalDate expiryDate);
+
+        @Query("""
+                            SELECT ib FROM InventoryBatch ib
+                            JOIN FETCH ib.ingredient
+                            WHERE ib.branch.id = :branchId
+                              AND ib.remainingQuantity > 0
+                              AND (ib.expiryDate IS NULL OR ib.expiryDate >= CURRENT_DATE)
+                            ORDER BY ib.expiryDate ASC
+                        """)
+        List<InventoryBatch> findAvailableBatchesByBranch(@Param("branchId") Long branchId);
 }
