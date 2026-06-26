@@ -17,6 +17,7 @@ public class ReservationResponse {
     private String branchName;
     private Integer tableNumber;
     private Integer roomNumber;
+    private String area;
     private Double remainingAmount;
     private String status;
     private LocalDateTime checkInTime;
