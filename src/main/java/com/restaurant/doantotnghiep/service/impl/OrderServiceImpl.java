@@ -345,13 +345,20 @@ public class OrderServiceImpl implements OrderService {
 
             BranchFood bf = getBranchFood(branchId, foodId);
 
-            // ← LUÔN tạo mới, không cộng dồn
+            BigDecimal price;
+            Object rawPrice = i.get("price");
+            if (rawPrice != null) {
+                price = new BigDecimal(rawPrice.toString());
+            } else {
+                price = priceCalculationService.calculateFinalPrice(bf);
+            }
+
             OrderItem newItem = new OrderItem();
             newItem.setOrder(order);
             newItem.setFood(bf.getFood());
             newItem.setBranchFood(bf);
             newItem.setQuantity(quantity);
-            newItem.setPrice(priceCalculationService.calculateFinalPrice(bf));
+            newItem.setPrice(price);
             newItem.calculateSubtotal();
             order.getItems().add(newItem);
         }
