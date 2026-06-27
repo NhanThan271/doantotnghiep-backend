@@ -124,6 +124,8 @@ public class KitchenNotificationScheduler {
                                         : r.getRoom() != null
                                                         ? "Phòng " + r.getRoom().getNumber()
                                                         : "Chưa xác định");
+                        payload.put("time", r.getCheckInTime()
+                                        .format(DateTimeFormatter.ofPattern("HH:mm")));
                         payload.put("checkInTime", r.getCheckInTime()
                                         .format(DateTimeFormatter.ofPattern("HH:mm dd/MM/yyyy")));
 
