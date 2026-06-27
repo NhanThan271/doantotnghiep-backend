@@ -88,7 +88,7 @@ public class ReservationNotificationScheduler {
                         HttpEntity<Map<String, Object>> entity = new HttpEntity<>(payload, headers);
 
                         restTemplate.postForEntity(
-                                        "http://localhost:3001/notify-staff-reservation",
+                                        "http://socket-server:3000/notify-staff-reservation",
                                         entity,
                                         Map.class);
 
