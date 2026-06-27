@@ -7,14 +7,14 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.bind.annotation.RestController;
 
 import com.restaurant.doantotnghiep.dto.FoodForecastDTO;
 import com.restaurant.doantotnghiep.service.FoodForecastService;
 
 import lombok.RequiredArgsConstructor;
 
-@RestControllerAdvice
+@RestController
 @RequestMapping("/api/food-forecast")
 @CrossOrigin(origins = "*")
 @RequiredArgsConstructor
