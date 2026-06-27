@@ -196,7 +196,13 @@ public class ReservationServiceImpl implements ReservationService {
                         BranchFood branchFood = branchFoodRepository.findById(branchFoodId)
                                         .orElseThrow(() -> new RuntimeException("BranchFood not found"));
 
-                        BigDecimal price = priceCalculationService.calculateFinalPrice(branchFood);
+                        BigDecimal price;
+                        Object rawPrice = item.get("price");
+                        if (rawPrice != null) {
+                                price = new BigDecimal(rawPrice.toString());
+                        } else {
+                                price = priceCalculationService.calculateFinalPrice(branchFood);
+                        }
 
                         ReservationItem reservationItem = ReservationItem.builder()
                                         .reservation(reservation)

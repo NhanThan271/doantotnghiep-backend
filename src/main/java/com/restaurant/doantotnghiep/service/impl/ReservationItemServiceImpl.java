@@ -31,15 +31,13 @@ public class ReservationItemServiceImpl implements ReservationItemService {
             throw new RuntimeException("Not enough stock");
         }
 
-        Double price = branchFood.getCustomPrice() != null
-                ? branchFood.getCustomPrice()
-                : branchFood.getFood().getPrice().doubleValue();
+        BigDecimal finalPrice = priceCalculationService.calculateFinalPrice(branchFood);
 
         ReservationItem item = ReservationItem.builder()
                 .reservation(reservation)
                 .branchFood(branchFood)
                 .quantity(quantity)
-                .price(priceCalculationService.calculateFinalPrice(branchFood))
+                .price(finalPrice)
                 .build();
 
         return repository.save(item);
