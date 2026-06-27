@@ -4,6 +4,7 @@ import com.restaurant.doantotnghiep.dto.ReservationResponse;
 import com.restaurant.doantotnghiep.dto.SeatMapResponse;
 import com.restaurant.doantotnghiep.entity.Branch;
 import com.restaurant.doantotnghiep.entity.BranchFood;
+import com.restaurant.doantotnghiep.entity.Order;
 import com.restaurant.doantotnghiep.entity.Reservation;
 import com.restaurant.doantotnghiep.entity.ReservationItem;
 import com.restaurant.doantotnghiep.entity.Room;
@@ -22,13 +23,17 @@ import com.restaurant.doantotnghiep.repository.RoomRepository;
 import com.restaurant.doantotnghiep.repository.TableRepository;
 import com.restaurant.doantotnghiep.repository.UserRepository;
 import com.restaurant.doantotnghiep.service.EmailService;
-import com.restaurant.doantotnghiep.service.KitchenOrderService;
 import com.restaurant.doantotnghiep.service.PriceCalculationService;
 import com.restaurant.doantotnghiep.service.ReservationService;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -49,11 +54,12 @@ public class ReservationServiceImpl implements ReservationService {
         private final TableRepository tableRepository;
         private final RoomRepository roomRepository;
         private final BranchFoodRepository branchFoodRepository;
-        private final ReservationItemRepository reservationItemRepository;
         private final EmailService emailService;
         private final OrderServiceImpl orderService;
         private final PriceCalculationService priceCalculationService;
         private final OrderRepository orderRepository;
+        private final RestTemplate restTemplate;
+        private final ReservationItemRepository reservationItemRepository;
 
         @Transactional
         public Reservation createFullReservation(Map<String, Object> request) {
@@ -315,7 +321,14 @@ public class ReservationServiceImpl implements ReservationService {
                 if (status == ReservationStatus.CONFIRMED) {
                         boolean orderExists = orderRepository.existsByReservationId(reservation.getId());
                         if (!orderExists) {
-                                orderService.createOrderFromReservation(reservation.getId());
+                                Order createdOrder = orderService.createOrderFromReservation(reservation.getId());
+                                long minutesUntilCheckIn = java.time.Duration.between(
+                                                LocalDateTime.now(),
+                                                reservation.getCheckInTime()).toMinutes();
+
+                                if (minutesUntilCheckIn <= 40) {
+                                        notifyKitchenViaSocket(reservation, createdOrder);
+                                }
                         }
                 }
 
@@ -500,5 +513,54 @@ public class ReservationServiceImpl implements ReservationService {
                                                         .build();
                                 })
                                 .toList();
+        }
+
+        private void notifyKitchenViaSocket(Reservation reservation, Order createdOrder) {
+                try {
+                        List<ReservationItem> items = reservationItemRepository
+                                        .findByReservationId(reservation.getId());
+
+                        List<Map<String, Object>> kitchenItems = items.stream()
+                                        .map(item -> Map.<String, Object>of(
+                                                        "id", item.getBranchFood().getFood().getId(),
+                                                        "name", item.getBranchFood().getFood().getName(),
+                                                        "quantity", item.getQuantity()))
+                                        .collect(Collectors.toList());
+
+                        Map<String, Object> payload = new HashMap<>();
+                        payload.put("orderId", createdOrder.getId());
+                        payload.put("branchId", reservation.getBranch().getId());
+                        payload.put("tableNumber",
+                                        reservation.getTable() != null ? reservation.getTable().getNumber()
+                                                        : reservation.getRoom() != null
+                                                                        ? reservation.getRoom().getNumber()
+                                                                        : "");
+                        payload.put("locationName",
+                                        reservation.getTable() != null ? "Bàn " + reservation.getTable().getNumber()
+                                                        : reservation.getRoom() != null
+                                                                        ? "Phòng " + reservation.getRoom().getNumber()
+                                                                        : "");
+                        payload.put("areaName",
+                                        reservation.getTable() != null
+                                                        ? (reservation.getTable().getArea() != null
+                                                                        ? reservation.getTable().getArea()
+                                                                        : "Khu chính")
+                                                        : reservation.getRoom() != null ? "Khu VIP" : "Khu chính");
+                        payload.put("items", kitchenItems);
+                        payload.put("isRoom", reservation.getRoom() != null);
+                        payload.put("timestamp", LocalDateTime.now().toString());
+
+                        HttpHeaders headers = new HttpHeaders();
+                        headers.setContentType(MediaType.APPLICATION_JSON);
+                        HttpEntity<Map<String, Object>> entity = new HttpEntity<>(payload, headers);
+
+                        restTemplate.postForEntity(
+                                        "http://localhost:3001/notify-new-order",
+                                        entity,
+                                        Map.class);
+
+                } catch (Exception e) {
+                        System.err.println("Không thể notify kitchen qua socket: " + e.getMessage());
+                }
         }
 }
