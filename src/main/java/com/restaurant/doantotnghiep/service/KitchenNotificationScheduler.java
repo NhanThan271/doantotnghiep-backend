@@ -98,7 +98,7 @@ public class KitchenNotificationScheduler {
                                         HttpEntity<Map<String, Object>> orderEntity = new HttpEntity<>(orderPayload,
                                                         orderHeaders);
                                         restTemplate.postForEntity(
-                                                        "http://socket-server:3000/notify-new-order",
+                                                        "http://socket-server:3001/notify-new-order",
                                                         orderEntity,
                                                         Map.class);
                                         log.info("Đã emit new-order cho bếp, orderId={}", order.getId());
@@ -145,7 +145,7 @@ public class KitchenNotificationScheduler {
                                 HttpEntity<Map<String, Object>> entity = new HttpEntity<>(payload, headers);
 
                                 restTemplate.postForEntity(
-                                                "http://socket-server:3000/notify-kitchen-reservation",
+                                                "http://socket-server:3001/notify-kitchen-reservation",
                                                 entity,
                                                 Map.class);
 

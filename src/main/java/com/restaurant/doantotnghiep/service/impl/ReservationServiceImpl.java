@@ -555,7 +555,7 @@ public class ReservationServiceImpl implements ReservationService {
                         HttpEntity<Map<String, Object>> entity = new HttpEntity<>(payload, headers);
 
                         restTemplate.postForEntity(
-                                        "http://socket-server:3000/notify-new-order",
+                                        "http://socket-server:3001/notify-new-order",
                                         entity,
                                         Map.class);
 
