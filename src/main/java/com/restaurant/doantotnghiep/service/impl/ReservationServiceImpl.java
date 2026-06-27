@@ -299,10 +299,6 @@ public class ReservationServiceImpl implements ReservationService {
                 }
                 double total = Math.round(r.getTotalPrice() * 100.0) / 100.0;
                 double deposit = Math.round(r.getDepositAmount() * 100.0) / 100.0;
-
-                if (deposit >= total * 0.9 - 1) {
-                        return 0.0;
-                }
                 double remaining = Math.round((total - deposit) * 100.0) / 100.0;
 
                 return Math.max(0.0, remaining);
