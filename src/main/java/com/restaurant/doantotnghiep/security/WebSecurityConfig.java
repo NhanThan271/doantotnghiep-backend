@@ -108,6 +108,7 @@ public class WebSecurityConfig {
                         .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
 
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/api/food-forecast/**").hasAnyRole("ADMIN", "MANAGER")
                         .requestMatchers("/api/manager/**").hasAnyRole("ADMIN", "MANAGER", "EMPLOYEE")
                         .requestMatchers("/api/kitchen/**").hasAnyRole("ADMIN", "MANAGER", "EMPLOYEE")
                         .requestMatchers("/api/employee/**").hasAnyRole("ADMIN", "MANAGER", "EMPLOYEE")
