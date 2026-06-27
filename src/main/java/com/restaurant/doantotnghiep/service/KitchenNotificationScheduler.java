@@ -4,6 +4,7 @@ import com.restaurant.doantotnghiep.entity.Order;
 import com.restaurant.doantotnghiep.entity.Reservation;
 import com.restaurant.doantotnghiep.entity.ReservationItem;
 import com.restaurant.doantotnghiep.entity.enums.ReservationStatus;
+import com.restaurant.doantotnghiep.repository.OrderRepository;
 import com.restaurant.doantotnghiep.repository.ReservationItemRepository;
 import com.restaurant.doantotnghiep.repository.ReservationRepository;
 import com.restaurant.doantotnghiep.service.impl.OrderServiceImpl;
@@ -30,6 +31,7 @@ public class KitchenNotificationScheduler {
         private final ReservationItemRepository reservationItemRepository;
         private final RestTemplate restTemplate;
         private final OrderServiceImpl orderService;
+        private final OrderRepository orderRepository;
 
         @Transactional
         @Scheduled(fixedRate = 5000)
@@ -56,7 +58,10 @@ public class KitchenNotificationScheduler {
                         }
 
                         try {
-                                Order createdOrder = orderService.createOrderFromReservation(r.getId());
+
+                                Order order = orderRepository.findByReservationId(r.getId())
+                                                .orElseGet(() -> orderService.createOrderFromReservation(r.getId()));
+
                                 r.setNotifiedKitchen(true);
 
                                 List<Map<String, Object>> kitchenItems = items.stream()
@@ -67,7 +72,7 @@ public class KitchenNotificationScheduler {
                                                 .collect(Collectors.toList());
 
                                 Map<String, Object> orderPayload = new HashMap<>();
-                                orderPayload.put("orderId", createdOrder.getId());
+                                orderPayload.put("orderId", order.getId());
                                 orderPayload.put("branchId", r.getBranch().getId());
                                 orderPayload.put("tableNumber",
                                                 r.getTable() != null ? r.getTable().getNumber()
@@ -85,7 +90,7 @@ public class KitchenNotificationScheduler {
                                                                 : r.getRoom() != null ? "Khu VIP" : "Khu chính");
                                 orderPayload.put("items", kitchenItems);
                                 orderPayload.put("isRoom", r.getRoom() != null);
-                                orderPayload.put("timestamp", java.time.LocalDateTime.now().toString());
+                                orderPayload.put("timestamp", LocalDateTime.now().toString());
 
                                 try {
                                         HttpHeaders orderHeaders = new HttpHeaders();
@@ -96,7 +101,7 @@ public class KitchenNotificationScheduler {
                                                         "http://localhost:3001/notify-new-order",
                                                         orderEntity,
                                                         Map.class);
-                                        log.info("Đã emit new-order cho bếp, orderId={}", createdOrder.getId());
+                                        log.info("Đã emit new-order cho bếp, orderId={}", order.getId());
                                 } catch (Exception e) {
                                         log.error("Không thể emit new-order: {}", e.getMessage());
                                 }
