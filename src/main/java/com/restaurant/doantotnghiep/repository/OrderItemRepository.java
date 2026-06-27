@@ -20,41 +20,42 @@ public interface OrderItemRepository extends JpaRepository<OrderItem, Long> {
     // Kiểm tra order còn món chưa DONE không
     boolean existsByOrderIdAndKitchenStatusNot(Long orderId, KitchenStatus status);
 
-    @Query("""
-                SELECT oi.food.id, oi.food.name, SUM(oi.quantity) as totalSold,
-                       FUNCTION('WEEK', o.createdAt) as week,
-                       FUNCTION('YEAR', o.createdAt) as year
-                FROM OrderItem oi
-                JOIN oi.order o
+    @Query(value = """
+                SELECT oi.food_id,
+                       f.name,
+                       SUM(oi.quantity)      AS totalSold,
+                       WEEK(o.created_at)    AS week,
+                       YEAR(o.created_at)    AS year
+                FROM order_items oi
+                JOIN orders o ON o.id = oi.order_id
+                JOIN foods  f ON f.id = oi.food_id
                 WHERE o.status IN ('PAID', 'COMPLETED')
-                  AND o.createdAt >= :from
-                  AND o.createdAt <= :to
-                  AND (:branchId IS NULL OR o.branch.id = :branchId)
-                GROUP BY oi.food.id, oi.food.name,
-                         FUNCTION('WEEK', o.createdAt),
-                         FUNCTION('YEAR', o.createdAt)
-                ORDER BY totalSold DESC
-            """)
+                  AND o.created_at >= :from
+                  AND o.created_at <= :to
+                  AND (:branchId IS NULL OR o.branch_id = :branchId)
+                GROUP BY oi.food_id, f.name, WEEK(o.created_at), YEAR(o.created_at)
+                ORDER BY YEAR(o.created_at) ASC, WEEK(o.created_at) ASC
+            """, nativeQuery = true)
     List<Object[]> findWeeklySalesByFood(
             @Param("from") LocalDateTime from,
             @Param("to") LocalDateTime to,
             @Param("branchId") Long branchId);
 
-    // Thêm query theo tháng
-    @Query("""
-                SELECT oi.food.id, oi.food.name, SUM(oi.quantity) as totalSold,
-                       FUNCTION('MONTH', o.createdAt) as month,
-                       FUNCTION('YEAR', o.createdAt) as year
-                FROM OrderItem oi
-                JOIN oi.order o
+    @Query(value = """
+                SELECT oi.food_id,
+                       f.name,
+                       SUM(oi.quantity)       AS totalSold,
+                       MONTH(o.created_at)    AS month,
+                       YEAR(o.created_at)     AS year
+                FROM order_items oi
+                JOIN orders o ON o.id = oi.order_id
+                JOIN foods  f ON f.id = oi.food_id
                 WHERE o.status IN ('PAID', 'COMPLETED')
-                  AND o.createdAt >= :from
-                  AND (:branchId IS NULL OR o.branch.id = :branchId)
-                GROUP BY oi.food.id, oi.food.name,
-                         FUNCTION('MONTH', o.createdAt),
-                         FUNCTION('YEAR', o.createdAt)
-                ORDER BY year DESC, month DESC
-            """)
+                  AND o.created_at >= :from
+                  AND (:branchId IS NULL OR o.branch_id = :branchId)
+                GROUP BY oi.food_id, f.name, MONTH(o.created_at), YEAR(o.created_at)
+                ORDER BY YEAR(o.created_at) ASC, MONTH(o.created_at) ASC
+            """, nativeQuery = true)
     List<Object[]> findMonthlySalesByFood(
             @Param("from") LocalDateTime from,
             @Param("branchId") Long branchId);
