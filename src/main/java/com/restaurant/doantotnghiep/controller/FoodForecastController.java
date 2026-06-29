@@ -23,10 +23,13 @@ public class FoodForecastController {
     private final FoodForecastService forecastService;
 
     @GetMapping
-    public ResponseEntity<List<FoodForecastDTO>> getForecast(
-            @RequestParam(defaultValue = "WEEK") String mode,
-            @RequestParam(required = false) Long branchId,
-            @RequestParam(defaultValue = "10") int topN) {
-        return ResponseEntity.ok(forecastService.getForecast(mode, branchId, topN));
+    public List<FoodForecastDTO> getForecast(
+            @RequestParam String mode,
+            @RequestParam Long branchId,
+            @RequestParam int topN,
+            @RequestParam String from,
+            @RequestParam String to 
+    ) {
+        return forecastService.getForecast(mode, branchId, topN, from, to);
     }
 }
