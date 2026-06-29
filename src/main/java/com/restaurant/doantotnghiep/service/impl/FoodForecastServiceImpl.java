@@ -76,9 +76,14 @@ public class FoodForecastServiceImpl implements FoodForecastService {
 
         map.values().forEach(dto -> {
             List<Long> hist = dto.getHistory();
-            double avg = hist.stream().mapToLong(Long::longValue).average().orElse(0);
+
+            List<Long> completedHist = hist.size() > 1
+                    ? hist.subList(0, hist.size() - 1)
+                    : hist;
+
+            double avg = completedHist.stream().mapToLong(Long::longValue).average().orElse(0);
             dto.setAvgPerPeriod(avg);
-            dto.setForecastNextPeriod(weightedForecast(hist));
+            dto.setForecastNextPeriod(weightedForecast(completedHist));
             dto.setTrend(calcTrend(hist));
         });
 
