@@ -1,6 +1,8 @@
 package com.restaurant.doantotnghiep.service.impl;
 
+import java.time.DayOfWeek;
 import java.time.LocalDateTime;
+import java.time.temporal.TemporalAdjusters;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -21,11 +23,21 @@ public class FoodForecastServiceImpl implements FoodForecastService {
     @Override
     public List<FoodForecastDTO> getForecast(String mode, Long branchId, int topN) {
         boolean isWeekly = "WEEK".equalsIgnoreCase(mode);
-        LocalDateTime from = isWeekly
-                ? LocalDateTime.now().minusWeeks(12)
-                : LocalDateTime.now().minusMonths(6);
-        LocalDateTime to = LocalDateTime.now();
+        LocalDateTime to;
+        LocalDateTime from;
 
+        if (isWeekly) {
+            LocalDateTime startOfThisWeek = LocalDateTime.now()
+                    .with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
+                    .toLocalDate().atStartOfDay();
+            to = startOfThisWeek.minusSeconds(1);
+            from = to.minusWeeks(12);
+        } else {
+            LocalDateTime startOfThisMonth = LocalDateTime.now()
+                    .withDayOfMonth(1).toLocalDate().atStartOfDay();
+            to = startOfThisMonth.minusSeconds(1);
+            from = to.minusMonths(6);
+        }
         // Dùng 0L thay null để tránh lỗi IS NULL trên PostgreSQL
         Long safeBranchId = (branchId != null) ? branchId : 0L;
 
