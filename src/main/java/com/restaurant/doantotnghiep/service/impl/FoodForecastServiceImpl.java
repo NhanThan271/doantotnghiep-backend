@@ -84,16 +84,21 @@ public class FoodForecastServiceImpl implements FoodForecastService {
         return Math.round(valueSum / weightSum);
     }
 
-    // So sánh trung bình nửa đầu và nửa sau lịch sử
+    // So sánh kỳ trước với kỳ gần nhất
     private String calcTrend(List<Long> hist) {
         if (hist.size() < 2)
             return "STABLE";
-        int mid = hist.size() / 2;
-        double first = hist.subList(0, mid).stream().mapToLong(Long::longValue).average().orElse(0);
-        double second = hist.subList(mid, hist.size()).stream().mapToLong(Long::longValue).average().orElse(0);
-        if (second > first * 1.1)
+
+        long prev = hist.get(hist.size() - 2);
+        long curr = hist.get(hist.size() - 1);
+
+        if (prev == 0)
+            return curr > 0 ? "UP" : "STABLE";
+
+        double changeRate = (double) (curr - prev) / prev;
+        if (changeRate > 0.05)
             return "UP";
-        if (second < first * 0.9)
+        if (changeRate < -0.05)
             return "DOWN";
         return "STABLE";
     }
