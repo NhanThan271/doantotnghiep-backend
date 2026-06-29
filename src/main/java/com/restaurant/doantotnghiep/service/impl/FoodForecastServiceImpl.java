@@ -1,5 +1,6 @@
 package com.restaurant.doantotnghiep.service.impl;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -19,16 +20,17 @@ public class FoodForecastServiceImpl implements FoodForecastService {
     private final OrderItemRepository orderItemRepository;
 
     @Override
-    public List<FoodForecastDTO> getForecast(String mode, Long branchId, int topN) {
+    public List<FoodForecastDTO> getForecast(String mode, Long branchId, int topN, String from, String to) {
         boolean isWeekly = "WEEK".equalsIgnoreCase(mode);
-        LocalDateTime to = LocalDateTime.now();
-        LocalDateTime from = isWeekly ? to.minusWeeks(12) : to.minusMonths(6);
-        // Dùng 0L thay null để tránh lỗi IS NULL trên PostgreSQL
+
+        LocalDateTime fromDt = LocalDate.parse(from).atStartOfDay();
+        LocalDateTime toDt = LocalDate.parse(to).atTime(23, 59, 59);
+
         Long safeBranchId = (branchId != null) ? branchId : 0L;
 
         List<Object[]> rows = isWeekly
-                ? orderItemRepository.findWeeklySalesByFood(from, to, safeBranchId)
-                : orderItemRepository.findMonthlySalesByFood(from, to, safeBranchId);
+                ? orderItemRepository.findWeeklySalesByFood(fromDt, toDt, safeBranchId)
+                : orderItemRepository.findMonthlySalesByFood(fromDt, toDt, safeBranchId);
 
         Map<Long, FoodForecastDTO> map = new LinkedHashMap<>();
 
