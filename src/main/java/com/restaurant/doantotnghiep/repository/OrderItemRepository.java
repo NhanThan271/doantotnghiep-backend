@@ -34,7 +34,7 @@ public interface OrderItemRepository extends JpaRepository<OrderItem, Long> {
                   AND o.created_at <= :to
                   AND (:branchId = 0 OR o.branch_id = :branchId)
                 GROUP BY oi.food_id, f.name, EXTRACT(WEEK FROM o.created_at), EXTRACT(YEAR FROM o.created_at)
-                ORDER BY EXTRACT(YEAR FROM o.created_at) ASC, EXTRACT(WEEK FROM o.created_at) ASC
+                ORDER BY oi.food_id ASC, EXTRACT(YEAR FROM o.created_at) ASC, EXTRACT(WEEK FROM o.created_at) ASC
             """, nativeQuery = true)
     List<Object[]> findWeeklySalesByFood(
             @Param("from") LocalDateTime from,
@@ -55,7 +55,7 @@ public interface OrderItemRepository extends JpaRepository<OrderItem, Long> {
                   AND o.created_at <= :to
                   AND (:branchId = 0 OR o.branch_id = :branchId)
                 GROUP BY oi.food_id, f.name, EXTRACT(MONTH FROM o.created_at), EXTRACT(YEAR FROM o.created_at)
-                ORDER BY EXTRACT(YEAR FROM o.created_at) ASC, EXTRACT(MONTH FROM o.created_at) ASC
+                ORDER BY oi.food_id ASC, EXTRACT(YEAR FROM o.created_at) ASC, EXTRACT(MONTH FROM o.created_at) ASC
             """, nativeQuery = true)
     List<Object[]> findMonthlySalesByFood(
             @Param("from") LocalDateTime from,
