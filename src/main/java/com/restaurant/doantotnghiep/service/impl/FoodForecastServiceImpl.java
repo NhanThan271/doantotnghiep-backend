@@ -47,12 +47,20 @@ public class FoodForecastServiceImpl implements FoodForecastService {
 
         Map<Long, FoodForecastDTO> map = new LinkedHashMap<>();
 
+        Set<String> allPeriods = new LinkedHashSet<>();
+        Map<Long, Map<String, Long>> foodPeriodMap = new LinkedHashMap<>();
+
         for (Object[] row : rows) {
             if (row[0] == null)
                 continue;
             Long foodId = ((Number) row[0]).longValue();
             String name = row[1] != null ? row[1].toString() : "";
             Long qty = row[2] != null ? ((Number) row[2]).longValue() : 0L;
+            String period = row[4] + "-" + row[3];
+
+            allPeriods.add(period);
+            foodPeriodMap.computeIfAbsent(foodId, id -> new LinkedHashMap<>());
+            foodPeriodMap.get(foodId).put(period, qty);
 
             map.computeIfAbsent(foodId, id -> {
                 FoodForecastDTO dto = new FoodForecastDTO();
@@ -63,9 +71,22 @@ public class FoodForecastServiceImpl implements FoodForecastService {
                 return dto;
             });
 
-            FoodForecastDTO dto = map.get(foodId);
-            dto.getHistory().add(qty);
-            dto.setTotalPast(dto.getTotalPast() + qty);
+        }
+
+        for (Map.Entry<Long, FoodForecastDTO> entry : map.entrySet()) {
+            Long foodId = entry.getKey();
+            FoodForecastDTO dto = entry.getValue();
+            Map<String, Long> periodData = foodPeriodMap.get(foodId);
+
+            long total = 0;
+            List<Long> hist = new ArrayList<>();
+            for (String period : allPeriods) {
+                long qty = periodData.getOrDefault(period, 0L);
+                hist.add(qty);
+                total += qty;
+            }
+            dto.setHistory(hist);
+            dto.setTotalPast(total);
         }
 
         map.values().forEach(dto -> {
@@ -104,8 +125,12 @@ public class FoodForecastServiceImpl implements FoodForecastService {
         long prev = hist.get(hist.size() - 2);
         long curr = hist.get(hist.size() - 1);
 
-        if (prev == 0)
-            return curr > 0 ? "UP" : "STABLE";
+        if (prev == 0 && curr == 0)
+            return "STABLE";
+        if (prev == 0 && curr > 0)
+            return "UP";
+        if (prev > 0 && curr == 0)
+            return "DOWN";
 
         double changeRate = (double) (curr - prev) / prev;
         if (changeRate > 0.05)
