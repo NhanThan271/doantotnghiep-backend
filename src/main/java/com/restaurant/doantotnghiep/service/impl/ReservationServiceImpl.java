@@ -395,12 +395,10 @@ public class ReservationServiceImpl implements ReservationService {
         public List<SeatMapResponse> getTableMap() {
                 try {
                         LocalDateTime now = LocalDateTime.now();
-                        LocalDateTime fourHoursLater = now.plusHours(4);
 
                         List<Reservation> reservations = reservationRepository
-                                        .findUpcomingReservations(now, fourHoursLater);
+                                        .findConfirmedActiveReservations(now);
 
-                        // Sửa: Dùng Map với merge function để tránh duplicate key
                         Map<Long, Reservation> reservationMap = new HashMap<>();
                         if (reservations != null) {
                                 for (Reservation r : reservations) {
