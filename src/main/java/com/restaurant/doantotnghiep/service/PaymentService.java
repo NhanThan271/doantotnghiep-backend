@@ -18,6 +18,7 @@ import com.restaurant.doantotnghiep.repository.StaffRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -62,8 +63,8 @@ public class PaymentService {
         order.setPayment(payment);
 
         orderRepository.save(order);
-        Payment saved = paymentRepository.save(payment); 
-        
+        Payment saved = paymentRepository.save(payment);
+
         try {
             User employee = order.getEmployee();
             if (employee != null) {
@@ -89,6 +90,7 @@ public class PaymentService {
         return paymentRepository.findByOrderId(orderId);
     }
 
+    @Transactional
     public Payment createReservationPayment(Long reservationId, Payment payment) {
 
         Reservation reservation = reservationRepository.findById(reservationId)
